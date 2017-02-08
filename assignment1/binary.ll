@@ -13,6 +13,7 @@ IF|if  { return yy::parser::make_IF(yytext); }
 THEN|then { return yy::parser::make_THEN(yytext); }
 ELSEIF|elseif { return yy::parser::make_ELSEIF(yytext); }
 FOR|for  { return yy::parser::make_FOR(yytext); }
+IN|in { return yy::parser::make_IN(yytext); }
 FUNCTION|function { return yy::parser::make_FUNCTION(yytext); }
 LOCAL|local { return yy::parser::make_LOCAL(yytext); }
 RETURN|return { return yy::parser::make_RETURN(yytext); }
@@ -23,6 +24,11 @@ TRUE|true { return yy::parser::make_TRUE(yytext); }
 AND|and { return yy::parser::make_AND(yytext); }
 OR|or { return yy::parser::make_OR(yytext); }
 NOT|not { return yy::parser::make_NOT(yytext); }
+REPEAT|repeat { return yy::parser::make_REPEAT(yytext); }
+
+[A-Za-z][A-Za-z0-9]* { return yy::parser::make_NAME(yytext); }
+'[^']*'|\"[^\"]*\" { return yy::parser::make_STR(yytext); }
+[0-9]+|[0-9]+\.[0-9]+ { return yy::parser::make_NUMBER(yytext); }
 
 \[ { return yy::parser::make_START_SQUARE_BRACKET(yytext); }
 \] { return yy::parser::make_END_SQUARE_BRACKET(yytext); }
@@ -35,6 +41,7 @@ NOT|not { return yy::parser::make_NOT(yytext); }
 , { return yy::parser::make_COMMA(yytext); }
 \n { return yy::parser::make_NEWLINE(yytext); }
 ; { return yy::parser::make_SEMICOLON(yytext); }
+: { return yy::parser::make_COLON(yytext); }
 [ \t] { return yy::parser::make_WHITESPACE(yytext); }
 \+ { return yy::parser::make_PLUS(yytext); }
 - { return yy::parser::make_MINUS(yytext); }
