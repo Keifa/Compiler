@@ -14,25 +14,80 @@
   Node root;
 }
 
-%token <std::string> TEXT
+%token <std::string> DO
+%token <std::string> END
+%token <std::string> WHILE
+%token <std::string> UNTIL
+%token <std::string> IF
+%token <std::string> THEN
+%token <std::string> ELSEIF
+%token <std::string> FOR
+%token <std::string> FUNCTION
+%token <std::string> LOCAL
+%token <std::string> RETURN
+%token <std::string> BREAK
+%token <std::string> NIL
+%token <std::string> FALSE
+%token <std::string> TRUE
+%token <std::string> AND
+%token <std::string> OR
+%token <std::string> NOT
+
+%token <std::string> START_SQUARE_BRACKET
+%token <std::string> END_SQUARE_BRACKET
+%token <std::string> START_PARENTHESES
+%token <std::string> END_PARENTHESES
+%token <std::string> START_BRACKET
+%token <std::string> END_BRACKET
+%token <std::string> EQUAL
+%token <std::string> EQUALEQUAL
+%token <std::string> COMMA
 %token <std::string> NEWLINE
 %token <std::string> SEMICOLON
-%token <std::string> PIPELINE
 %token <std::string> WHITESPACE
-%token <std::string> DOLLARSIGN
-%token <std::string> SINGLEQUOTE
-%token <std::string> DOUBLEQUOTE
-%token <std::string> EQUAL
+%token <std::string> PLUS
+%token <std::string> MINUS
+%token <std::string> STAR
+%token <std::string> SLASH
+%token <std::string> CARET
+%token <std::string> PERCENT
+%token <std::string> DOT
+%token <std::string> DOTDOT
+%token <std::string> DOTDOTDOT
+%token <std::string> LESS
+%token <std::string> LESSEQUAL
+%token <std::string> BIGGER
+%token <std::string> BIGGEREQUAL
+%token <std::string> NOTEQUAL
+%token <std::string> HASHTAG
+
+%token END_OF_FILE 0 "end of file"
+
+%type <Node> stream
 %type <Node> optline
 %type <Node> line
-%type <Node> anything
-%type <Node> stream
-%type <Node> pipe
-%type <Node> concat
-%type <Node> command
-%type <Node> equal
+%type <Node> chunk
+%type <Node> stat
+%type <Node> laststat
+%type <Node> funcname
+%type <Node> varlist
+%type <Node> var
+%type <Node> namelist
+%type <Node> explist
+%type <Node> exp
+%type <Node> prefixexp
+%type <Node> functioncall
+%type <Node> args
+%type <Node> function
+%type <Node> funcbody
+%type <Node> parlist
+%type <Node> tableconstructor
+%type <Node> fieldlist
+%type <Node> field
+%type <Node> fieldsep
+%type <Node> binop
+%type <Node> unop
 
-%token END 0 "end of file"
 %%
 
 stream
@@ -51,56 +106,9 @@ optline
   ;
 
 line
-  : pipe { $$ = $1; }
-  | line SEMICOLON pipe {
+  :  { $$ = $1; }
+  | line {
       $$ = Node("line", "");
       $$.children.push_back($1);
       $$.children.push_back($3); }
-  ;
-
-pipe
-  : equal { $$ = $1; }
-  | pipe PIPELINE equal {
-      $$ = Node("pipeline", "");
-      $$.children.push_back($1);
-      $$.children.push_back($3); }
-  ;
-
-equal
-  : command { $$ = $1; }
-  | anything EQUAL concat WHITESPACE equal {
-      $$ = Node("equal", "");
-      $$.children.push_back($1);
-      $$.children.push_back($3);
-      $$.children.push_back($5); }
-  ;
-
-command
-  : concat { $$ = $1; }
-  | command WHITESPACE concat {
-      $$ = Node("command", "");
-      $$.children.push_back($1);
-      $$.children.push_back($3); }
-  ;
-
-concat
-  : anything { $$ = $1; }
-  | concat anything {
-      if($1.children.size() == 0) {
-        $$ = Node("concat", "");
-        $$.children.push_back($1);
-        $$.children.push_back($2);
-      }
-      else {
-        $1.children.push_back($2);
-        $$ = $1;
-      }}
-  ;
-
-anything
-  : TEXT     { $$ = Node("WORD",   $1); }
-  | DOLLARSIGN    { $$ = Node("VAREXP", $1); }
-  | SINGLEQUOTE   { $$ = Node("SQUOTE", $1); }
-  | DOUBLEQUOTE   { $$ = Node("DQUOTE", $1); }
-  | EQUAL         { $$ = Node("EQUAL",  $1); }
   ;
