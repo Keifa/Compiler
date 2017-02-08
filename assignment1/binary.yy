@@ -106,9 +106,12 @@ optline
   ;
 
 line
-  :  { $$ = $1; }
-  | line {
-      $$ = Node("line", "");
-      $$.children.push_back($1);
-      $$.children.push_back($3); }
+  : unop { $$ = Node("line", ""); $$.children.push_back($1); }
+  | line unop { $1.children.push_back($2); $$ = $1; }
+  ;
+
+unop
+  : MINUS { $$ = Node("unop", $1); }
+  | NOT { $$ = Node("unop", $1); }
+  | HASHTAG { $$ = Node("unop", $1); }
   ;
