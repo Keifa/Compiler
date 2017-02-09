@@ -10,7 +10,6 @@
 %code{
   #define YY_DECL yy::parser::symbol_type yylex()
   YY_DECL;
-  using namespace std;
   Node root;
 }
 
@@ -70,10 +69,8 @@
 
 %token END_OF_FILE 0 "end of file"
 
-%type <Node> stream
-%type <Node> optline
-%type <Node> line
 %type <Node> chunk
+%type <Node> block
 %type <Node> stat
 %type <Node> laststat
 %type <Node> funcname
@@ -95,72 +92,57 @@
 %type <Node> binop
 %type <Node> unop
 
-%type <Node> test
-
 %%
 
-stream
-  : optline {
-      $$ = Node("stream", "");
+chunk
+  : stat {
+      $$ = Node("chunk", "");
       $$.children.push_back($1);
       root = $$; }
-  | stream NEWLINE optline { root.children.push_back($3); }
-  ;
-
-optline
-  : { $$ = Node("optline", "empty"); }
-  | line {
-      $$ = Node("optline", "has line");
+  | stat SEMICOLON {
+      $$ = Node("chunk", "");
+      $$.children.push_back($1);
+      root = $$; }
+  | chunk stat {
+      $1.children.push_back($2);
+      $$ = $1; }
+  | chunk stat SEMICOLON {
+      $1.children.push_back($2);
+      $$ = $1; }
+  | chunk laststat {
+      $1.children.push_back($2);
+      $$ = $1;}
+  | chunk laststat SEMICOLON {
+      $1.children.push_back($2);
+      $$ = $1; }
+  /*| NEWLINE {
+      $$ = Node("chunk", ""); }
+  | stat NEWLINE {
+      $$ = Node("chunk", "");
       $$.children.push_back($1); }
-  ;
-
-line
-  : test { $$ = Node("line", ""); $$.children.push_back($1); }
-  | line test { $1.children.push_back($2); $$ = $1; }
-  ;
-
-test
-: unop { $$ = Node("test", ""); $$.children.push_back($1); }
-| test unop { $1.children.push_back($2); $$ = $1; }
-| test WHITESPACE unop { $1.children.push_back($3); $$ = $1; }
-
-//| binop { $$ = Node("test", ""); $$.children.push_back($1); }
-//| test binop { $1.children.push_back($2); $$ = $1; }
-//| test WHITESPACE binop { $1.children.push_back($3); $$ = $1; }
-
-| fieldsep { $$ = Node("test", ""); $$.children.push_back($1); }
-| test fieldsep { $1.children.push_back($2); $$ = $1; }
-| test WHITESPACE fieldsep { $1.children.push_back($3); $$ = $1; }
-
-| NAME { $$ = Node("test", ""); $$.children.push_back(Node("NAME", $1)); }
-| test NAME { $1.children.push_back(Node("NAME", $2)); $$ = $1; }
-| test WHITESPACE NAME { $1.children.push_back(Node("NAME", $3)); $$ = $1; }
-
-| STR { $$ = Node("test", ""); $$.children.push_back(Node("STR", $1)); }
-| test STR { $1.children.push_back(Node("STR", $2)); $$ = $1; }
-| test WHITESPACE STR { $1.children.push_back(Node("STR", $3)); $$ = $1; }
-
-//| NUMBER { $$ = Node("test", ""); $$.children.push_back(Node("NUMBER", $1)); }
-//| test NUMBER { $1.children.push_back(Node("NUMBER", $2)); $$ = $1; }
-//| test WHITESPACE NUMBER { $1.children.push_back(Node("NUMBER", $3)); $$ = $1; }
-
-| exp { $$ = Node("test", ""); $$.children.push_back($1); }
-| test exp { $1.children.push_back($2); $$ = $1; }
-| test WHITESPACE exp { $1.children.push_back($3); $$ = $1; }
-;
-
-chunk
-  : stat SEMICOLON {}
+  | chunk NEWLINE { $$ = $1; }*/
   ;
 
 block
-  : chunk {}
+  : chunk {
+      $$ = Node("block", "");
+      $$.children.push_back($1);
+      //root = $$;
+    }
+  /*| block chunk {
+      $1.children.push_back($2);
+      $$ = $1; }*/
   ;
 
 stat
-  : varlist EQUAL explist {}
-  | functioncall {}
-  | DO block END {}
+  : varlist EQUAL explist {
+      $$ = Node("stat", "");
+      $$.children.push_back($1);
+      $$.children.push_back($3); }
+  | functioncall {
+      $$ = Node("stat", "");
+      $$.children.push_back($1); }
+  | DO block END { }
   | WHILE exp DO block END {}
   | REPEAT block UNTIL exp {}
   | IF exp THEN block END{}
@@ -172,36 +154,63 @@ stat
   ;
 
 laststat
-  : RETURN explist {}
-  | BREAK {}
+  : RETURN { $$ = Node("laststat", ""); }
+  | RETURN explist {
+      $$ = Node("laststat", "");
+      $$.children.push_back($2); }
+  | BREAK {
+      $$ = Node("laststat", ""); }
   ;
 
 funcname
-  : NAME {}
-  | funcname DOT NAME {}
-  | funcname SEMICOLON NAME {}
+  : NAME { $$ = Node("funcname", $1); }
+  | funcname DOT NAME {
+      $1.children.push_back(Node("funcname DOT NAME", $3));
+      $$ = $1; }
+  | funcname COLON NAME {
+      $1.children.push_back(Node("funcname COLON NAME", $3));
+      $$ = $1; }
   ;
 
 varlist
-  : var {}
-  | varlist COMMA var {}
+  : var {
+      $$ = Node("varlist", "");
+      $$.children.push_back($1); }
+  | varlist COMMA var {
+      $1.children.push_back($3);
+      $$ = $1; }
   ;
 
 var
-  : NAME {}
-  | prefixexp {}
-  | START_SQUARE_BRACKET exp END_SQUARE_BRACKET {}
-  | prefixexp DOT NAME {}
+  : NAME {
+      $$ = Node("var", "");
+      $$.children.push_back(Node("name", $1)); }
+  | prefixexp START_SQUARE_BRACKET exp END_SQUARE_BRACKET {
+      $$ = Node("var", "");
+      $$.children.push_back($1);
+      $$.children.push_back($3); }
+  | prefixexp DOT NAME {
+      $$ = Node("var", "");
+      $$.children.push_back($1);
+      $$.children.push_back(Node("name", $3)); }
   ;
 
 namelist
-  : NAME {}
-  | namelist COMMA NAME {}
+  : NAME {
+      $$ = Node("namelist", "");
+      $$.children.push_back(Node("name", $1)); }
+  | namelist COMMA NAME {
+      $1.children.push_back(Node("name", $3));
+      $$ = $1; }
   ;
 
 explist
-  : exp {}
-  | explist COMMA exp {}
+  : exp {
+      $$ = Node("explist", "");
+      $$.children.push_back($1); }
+  | explist COMMA exp {
+      $1.children.push_back($3);
+      $$ = $1; }
   ;
 
 exp
@@ -211,46 +220,69 @@ exp
   | NUMBER { $$ = Node("exp", $1); }
   | STR { $$ = Node("exp", $1); }
   | DOTDOTDOT { $$ = Node("exp", $1); }
-  | function { $$ = Node("exp", ""); }
+  | function { $$ = $1; }
   | prefixexp { $$ = Node("exp", $1.value); }
-  | tableconstructor { $$ = Node("exp", ""); $$.children.push_back($1); }
+  | tableconstructor { $$ = Node("exp", ""); }
   | exp binop exp {
       $$ = Node("exp", "");
-      if      ($2.value == "+") {
-        $$.value = std::to_string(std::atoi($1.value.c_str()) + std::atoi($3.value.c_str())); }
-      else if ($2.value == "-") {
-        $$.value = std::to_string(std::atoi($1.value.c_str()) - std::atoi($3.value.c_str())); }
-      else if ($2.value == "/") {
-        $$.value = std::to_string(std::atoi($1.value.c_str()) / std::atoi($3.value.c_str())); }
-      else if ($2.value == "*") {
-        $$.value = std::to_string(std::atoi($1.value.c_str()) * std::atoi($3.value.c_str())); }
+      if($2.value == "+")
+        $$.value = std::to_string(std::atoi($1.value.c_str()) + std::atoi($3.value.c_str()));
+      else if ($2.value == "-")
+        $$.value = std::to_string(std::atoi($1.value.c_str()) - std::atoi($3.value.c_str()));
+      else if ($2.value == "/")
+        $$.value = std::to_string(std::atoi($1.value.c_str()) / std::atoi($3.value.c_str()));
+      else if ($2.value == "*")
+        $$.value = std::to_string(std::atoi($1.value.c_str()) * std::atoi($3.value.c_str()));
   }
-  | unop exp { $$ = Node("exp", ""); $$.children.push_back($2); }
+  | unop exp {
+      $$ = Node("exp", "");
+      $$.children.push_back($2); }
   ;
 
 prefixexp
-  : var {}
-  | functioncall {}
-  | START_PARENTHESES exp END_PARENTHESES { $$ = Node("prefixexp", $2.value); }
+  : var {
+      $$ = Node("prefixexp", "");
+      $$ .children.push_back($1); }
+  | functioncall {
+      $$ = Node("prefixexp", "");
+      $$.children.push_back($1); }
+  | START_PARENTHESES exp END_PARENTHESES {
+      $$ = Node("prefixexp", "");
+      $$.children.push_back($2); }
   ;
 
 functioncall
-  : prefixexp args {}
-  | prefixexp COLON NAME args {}
+  : prefixexp args {
+      $$ = Node("functioncall", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2); }
+  | prefixexp COLON NAME args {
+      $$ = Node("functioncall", "");
+      $$.children.push_back($1);
+      $$.children.push_back(Node("name", $3));
+      $$.children.push_back($4); }
   ;
 
 args
-  : START_PARENTHESES explist END_PARENTHESES {}
-  | functioncall {}
-  | START_PARENTHESES exp END_PARENTHESES {}
+  : START_PARENTHESES END_PARENTHESES { $$ = Node("args", ""); }
+  | START_PARENTHESES explist END_PARENTHESES {
+      $$ = Node("args", "");
+      $$.children.push_back($2); }
+  | tableconstructor {
+      $$ = Node("args", "");
+      $$.children.push_back($1); }
+  | STR {
+      $$ = Node("args", "");
+      $$.children.push_back(Node("string", $1)); }
   ;
 
 function
-  : FUNCTION funcbody {}
-  ;
+  : FUNCTION NAME funcbody {}
 
+  ;
 funcbody
-  : START_PARENTHESES parlist END_PARENTHESES block END {}
+  : START_PARENTHESES END_PARENTHESES block END {}
+  | START_PARENTHESES parlist END_PARENTHESES block END {}
   ;
 
 parlist
@@ -260,7 +292,8 @@ parlist
   ;
 
 tableconstructor
-  : START_SQUARE_BRACKET fieldlist END_SQUARE_BRACKET {}
+  : START_SQUARE_BRACKET END_SQUARE_BRACKET {}
+  | START_SQUARE_BRACKET fieldlist END_SQUARE_BRACKET {}
   ;
 
 fieldlist
@@ -269,9 +302,17 @@ fieldlist
   ;
 
 field
-  : START_SQUARE_BRACKET exp END_SQUARE_BRACKET EQUAL exp {}
-  | NAME EQUAL exp {}
-  | exp { $$ = Node("field", $1.value); }
+  : START_SQUARE_BRACKET exp END_SQUARE_BRACKET EQUAL exp {
+      $$ = Node("field", "");
+      $$.children.push_back($2);
+      $$.children.push_back($5); }
+  | NAME EQUAL exp {
+      $$ = Node("field", "");
+      $$.children.push_back(Node("name", $1));
+      $$.children.push_back($3); }
+  | exp {
+      $$ = Node("field", "");
+      $$.children.push_back($1); }
   ;
 
 fieldsep
