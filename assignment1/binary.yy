@@ -115,12 +115,12 @@ chunk
   | chunk laststat SEMICOLON {
       $1.children.push_back($2);
       $$ = $1; }
-  /*| NEWLINE {
+  | NEWLINE {
       $$ = Node("chunk", ""); }
   | stat NEWLINE {
       $$ = Node("chunk", "");
       $$.children.push_back($1); }
-  | chunk NEWLINE { $$ = $1; }*/
+  | chunk NEWLINE { $$ = $1; }
   ;
 
 block
@@ -138,6 +138,7 @@ stat
   : varlist EQUAL explist {
       $$ = Node("stat", "");
       $$.children.push_back($1);
+      $$.children.push_back(Node("="));
       $$.children.push_back($3); }
   | functioncall {
       $$ = Node("stat", "");
@@ -154,21 +155,35 @@ stat
   ;
 
 laststat
-  : RETURN { $$ = Node("laststat", ""); }
+  : RETURN {
+      $$ = Node("laststat", "");
+      $$.children.push_back(Node("RETURN")); }
   | RETURN explist {
       $$ = Node("laststat", "");
+      $$.children.push_back(Node("RETURN"));
       $$.children.push_back($2); }
   | BREAK {
-      $$ = Node("laststat", ""); }
+      $$ = Node("laststat", "");
+      $$.children.push_back(Node("BREAK")); }
   ;
 
 funcname
-  : NAME { $$ = Node("funcname", $1); }
+  : NAME {
+      $$ = Node("funcname", $1);
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   | funcname DOT NAME {
-      $1.children.push_back(Node("funcname DOT NAME", $3));
+      $$.children.push_back(Node("."));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $1.children.push_back(temp);
       $$ = $1; }
   | funcname COLON NAME {
-      $1.children.push_back(Node("funcname COLON NAME", $3));
+      $1.children.push_back(Node(":"));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $1.children.push_back(temp);
       $$ = $1; }
   ;
 
@@ -177,6 +192,7 @@ varlist
       $$ = Node("varlist", "");
       $$.children.push_back($1); }
   | varlist COMMA var {
+      $1.children.push_back(Node(","));
       $1.children.push_back($3);
       $$ = $1; }
   ;
@@ -184,23 +200,35 @@ varlist
 var
   : NAME {
       $$ = Node("var", "");
-      $$.children.push_back(Node("name", $1)); }
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   | prefixexp START_SQUARE_BRACKET exp END_SQUARE_BRACKET {
       $$ = Node("var", "");
       $$.children.push_back($1);
-      $$.children.push_back($3); }
+      $$.children.push_back(Node("["));
+      $$.children.push_back($3);
+      $$.children.push_back(Node("]")); }
   | prefixexp DOT NAME {
       $$ = Node("var", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node("name", $3)); }
+      $$.children.push_back(Node("."));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $$.children.push_back(temp); }
   ;
 
 namelist
   : NAME {
       $$ = Node("namelist", "");
-      $$.children.push_back(Node("name", $1)); }
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   | namelist COMMA NAME {
-      $1.children.push_back(Node("name", $3));
+      $1.children.push_back(Node(","));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $1.children.push_back(temp);
       $$ = $1; }
   ;
 
@@ -209,22 +237,48 @@ explist
       $$ = Node("explist", "");
       $$.children.push_back($1); }
   | explist COMMA exp {
+      $1.children.push_back(Node(","));
       $1.children.push_back($3);
       $$ = $1; }
   ;
 
 exp
-  : NIL { $$ = Node("exp", ""); }
-  | FALSE { $$ = Node("exp", $1); }
-  | TRUE { $$ = Node("exp", $1); }
-  | NUMBER { $$ = Node("exp", $1); }
-  | STR { $$ = Node("exp", $1); }
-  | DOTDOTDOT { $$ = Node("exp", $1); }
-  | function { $$ = $1; }
-  | prefixexp { $$ = Node("exp", $1.value); }
-  | tableconstructor { $$ = Node("exp", ""); }
+  : NIL {
+      $$ = Node("exp", $1);
+      $$.children.push_back(Node("NIL")); }
+  | FALSE {
+      $$ = Node("exp", $1);
+      $$.children.push_back(Node("FALSE")); }
+  | TRUE {
+      $$ = Node("exp", $1);
+      $$.children.push_back(Node("TRUE")); }
+  | NUMBER {
+      $$ = Node("exp", $1);
+      Node temp("number", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
+  | STR {
+      $$ = Node("exp", $1);
+      Node temp("string", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
+  | DOTDOTDOT {
+      $$ = Node("exp", $1);
+      $$.children.push_back(Node("...")); }
+  | function {
+      $$ = Node("exp", "");
+      $$.children.push_back($1); }
+  | prefixexp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1); }
+  | tableconstructor {
+      $$ = Node("exp", "");
+      $$.children.push_back($1); }
   | exp binop exp {
       $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3);
       if($2.value == "+")
         $$.value = std::to_string(std::atoi($1.value.c_str()) + std::atoi($3.value.c_str()));
       else if ($2.value == "-")
@@ -236,6 +290,7 @@ exp
   }
   | unop exp {
       $$ = Node("exp", "");
+      $$.children.push_back($1);
       $$.children.push_back($2); }
   ;
 
@@ -248,7 +303,9 @@ prefixexp
       $$.children.push_back($1); }
   | START_PARENTHESES exp END_PARENTHESES {
       $$ = Node("prefixexp", "");
-      $$.children.push_back($2); }
+      $$.children.push_back(Node("("));
+      $$.children.push_back($2);
+      $$.children.push_back(Node(")")); }
   ;
 
 functioncall
@@ -259,21 +316,31 @@ functioncall
   | prefixexp COLON NAME args {
       $$ = Node("functioncall", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node("name", $3));
+      $$.children.push_back(Node(":"));
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp);
       $$.children.push_back($4); }
   ;
 
 args
-  : START_PARENTHESES END_PARENTHESES { $$ = Node("args", ""); }
+  : START_PARENTHESES END_PARENTHESES {
+      $$ = Node("args", "");
+      $$.children.push_back(Node("("));
+      $$.children.push_back(Node(")"));}
   | START_PARENTHESES explist END_PARENTHESES {
       $$ = Node("args", "");
-      $$.children.push_back($2); }
+      $$.children.push_back(Node("("));
+      $$.children.push_back($2);
+      $$.children.push_back(Node(")")); }
   | tableconstructor {
       $$ = Node("args", "");
       $$.children.push_back($1); }
   | STR {
       $$ = Node("args", "");
-      $$.children.push_back(Node("string", $1)); }
+      Node temp("str", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   ;
 
 function
@@ -286,19 +353,43 @@ funcbody
   ;
 
 parlist
-  : namelist COMMA {}
-  | namelist DOTDOTDOT {}
-  | DOTDOTDOT {}
+  : namelist COMMA {
+      $$ = Node("parlist", "");
+      $$.children.push_back($1);
+      $$.children.push_back(Node(","));
+  }
+  | namelist DOTDOTDOT {
+      $$ = Node("parlist", "");
+      $$.children.push_back($1);
+      $$.children.push_back(Node("..."));
+  }
+  | DOTDOTDOT {
+      $$ = Node("parlist", "");
+      $$.children.push_back(Node("..."));}
   ;
 
 tableconstructor
-  : START_SQUARE_BRACKET END_SQUARE_BRACKET {}
-  | START_SQUARE_BRACKET fieldlist END_SQUARE_BRACKET {}
+  : START_SQUARE_BRACKET END_SQUARE_BRACKET {
+      $$ = Node("tableconstructor", "");
+      $$.children.push_back(Node("["));
+      $$.children.push_back(Node("]")); }
+  | START_SQUARE_BRACKET fieldlist END_SQUARE_BRACKET {
+      $$ = Node("tableconstructor", "");
+      $$.children.push_back(Node("["));
+      $$.children.push_back($2);
+      $$.children.push_back(Node("]")); }
   ;
 
 fieldlist
-  : field fieldsep {}
-  | fieldlist field fieldsep {}
+  : field fieldsep {
+      $$ = Node("fieldlist", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2); }
+  | fieldlist field fieldsep {
+      $$ = Node("fieldlist", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
   ;
 
 field
@@ -308,7 +399,9 @@ field
       $$.children.push_back($5); }
   | NAME EQUAL exp {
       $$ = Node("field", "");
-      $$.children.push_back(Node("name", $1));
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp);
       $$.children.push_back($3); }
   | exp {
       $$ = Node("field", "");
@@ -316,30 +409,30 @@ field
   ;
 
 fieldsep
-  : COMMA { $$ = Node("fieldsep", $1); }
-  | SEMICOLON { $$ = Node("fieldsep", $1); }
+  : COMMA { $$ = Node("fieldsep", $1); $$.children.push_back(Node(","));}
+  | SEMICOLON { $$ = Node("fieldsep", $1); $$.children.push_back(Node(";")); }
   ;
 
 binop
-  : PLUS { $$ = Node("binop", $1); }
-  | MINUS { $$ = Node("binop", $1); }
-  | STAR { $$ = Node("binop", $1); }
-  | SLASH { $$ = Node("binop", $1); }
-  | CARET { $$ = Node("binop", $1); }
-  | PERCENT { $$ = Node("binop", $1); }
-  | DOTDOT { $$ = Node("binop", $1); }
-  | LESS { $$ = Node("binop", $1); }
-  | LESSEQUAL { $$ = Node("binop", $1); }
-  | BIGGER { $$ = Node("binop", $1); }
-  | BIGGEREQUAL { $$ = Node("binop", $1); }
-  | EQUALEQUAL { $$ = Node("binop", $1); }
-  | NOTEQUAL { $$ = Node("binop", $1); }
-  | AND { $$ = Node("binop", $1); }
-  | OR { $$ = Node("binop", $1); }
+  : PLUS { $$ = Node("binop", $1); $$.children.push_back(Node("+")); }
+  | MINUS { $$ = Node("binop", $1); $$.children.push_back(Node("-")); }
+  | STAR { $$ = Node("binop", $1); $$.children.push_back(Node("*")); }
+  | SLASH { $$ = Node("binop", $1); $$.children.push_back(Node("/")); }
+  | CARET { $$ = Node("binop", $1); $$.children.push_back(Node("^")); }
+  | PERCENT { $$ = Node("binop", $1); $$.children.push_back(Node("%")); }
+  | DOTDOT { $$ = Node("binop", $1); $$.children.push_back(Node("..")); }
+  | LESS { $$ = Node("binop", $1); $$.children.push_back(Node("<")); }
+  | LESSEQUAL { $$ = Node("binop", $1); $$.children.push_back(Node("<=")); }
+  | BIGGER { $$ = Node("binop", $1); $$.children.push_back(Node(">")); }
+  | BIGGEREQUAL { $$ = Node("binop", $1); $$.children.push_back(Node(">=")); }
+  | EQUALEQUAL { $$ = Node("binop", $1); $$.children.push_back(Node("==")); }
+  | NOTEQUAL { $$ = Node("binop", $1); $$.children.push_back(Node("~=")); }
+  | AND { $$ = Node("binop", $1); $$.children.push_back(Node("AND"));}
+  | OR { $$ = Node("binop", $1); $$.children.push_back(Node("OR"));}
   ;
 
 unop
-  : MINUS { $$ = Node("unop", $1); }
-  | NOT { $$ = Node("unop", $1); }
-  | HASHTAG { $$ = Node("unop", $1); }
+  : MINUS { $$ = Node("unop", $1); $$.children.push_back(Node("-")); }
+  | NOT { $$ = Node("unop", $1); $$.children.push_back(Node("NOT")); }
+  | HASHTAG { $$ = Node("unop", $1); $$.children.push_back(Node("#")); }
   ;

@@ -9,7 +9,9 @@ void yy::parser::error(std::string const&err) {
 
 int main(int argc, char **argv) {
   yy::parser parser;
-  if(!parser.parse())
+  if(!parser.parse()) {
     root.dump();
+    root.createDotFile();
+  }
   return 0;
 }
