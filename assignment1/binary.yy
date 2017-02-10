@@ -10,7 +10,7 @@
 %code{
   #define YY_DECL yy::parser::symbol_type yylex()
   YY_DECL;
-  Node root;
+  Node root("root");
 }
 
 %token <std::string> NAME
@@ -50,7 +50,6 @@
 %token <std::string> NEWLINE
 %token <std::string> SEMICOLON
 %token <std::string> COLON
-%token <std::string> WHITESPACE
 %token <std::string> PLUS
 %token <std::string> MINUS
 %token <std::string> STAR
@@ -94,64 +93,121 @@
 
 %%
 
+root
+  : chunk {
+    root.children.push_back($1); }
+  ;
+
 chunk
   : stat {
+      std::cout << "stat\n";
       $$ = Node("chunk", "");
-      $$.children.push_back($1);
-      root = $$; }
+      $$.children.push_back($1); }
   | stat SEMICOLON {
+      std::cout << "stat SEMICOLON\n";
       $$ = Node("chunk", "");
       $$.children.push_back($1);
-      root = $$; }
+      $$.children.push_back(Node($2)); }
   | chunk stat {
+      std::cout << "chunk stat\n";
       $1.children.push_back($2);
       $$ = $1; }
   | chunk stat SEMICOLON {
+      std::cout << "chunk stat SEMICOLON\n";
       $1.children.push_back($2);
+      $1.children.push_back(Node($3));
       $$ = $1; }
   | chunk laststat {
-      $1.children.push_back($2);
-      $$ = $1;}
-  | chunk laststat SEMICOLON {
+      std::cout << "chunk laststat\n";
       $1.children.push_back($2);
       $$ = $1; }
-  | NEWLINE {
-      $$ = Node("chunk", ""); }
-  | stat NEWLINE {
-      $$ = Node("chunk", "");
-      $$.children.push_back($1); }
-  | chunk NEWLINE { $$ = $1; }
+  | chunk laststat SEMICOLON {
+      std::cout << "chunk laststat SEMICOLON\n";
+      $1.children.push_back($2);
+      $1.children.push_back(Node($3));
+      $$ = $1; }
   ;
 
 block
   : chunk {
+      std::cout << "chunk\n";
       $$ = Node("block", "");
-      $$.children.push_back($1);
-      //root = $$;
-    }
-  /*| block chunk {
-      $1.children.push_back($2);
-      $$ = $1; }*/
+      $$.children.push_back($1); }
   ;
 
 stat
   : varlist EQUAL explist {
       $$ = Node("stat", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node("="));
+      $$.children.push_back(Node($2));
       $$.children.push_back($3); }
   | functioncall {
       $$ = Node("stat", "");
       $$.children.push_back($1); }
-  | DO block END { }
-  | WHILE exp DO block END {}
-  | REPEAT block UNTIL exp {}
-  | IF exp THEN block END{}
-  | FOR NAME EQUAL exp COMMA exp DO block END {}
-  | FOR namelist IN explist DO block END {}
-  | FUNCTION funcname funcbody {}
-  | LOCAL FUNCTION NAME funcbody {}
-  | LOCAL namelist {}
+  | DO block END {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back(Node($3)); }
+  | WHILE exp DO block END {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back(Node($3));
+      $$.children.push_back($4);
+      $$.children.push_back(Node($5)); }
+  | REPEAT block UNTIL exp {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back(Node($3));
+      $$.children.push_back($4); }
+  | IF exp THEN block END {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back(Node($3));
+      $$.children.push_back($4);
+      $$.children.push_back(Node($5)); }
+  | FOR NAME EQUAL exp COMMA exp DO block END {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      Node temp("name");
+      temp.children.push_back(Node($2));
+      $$.children.push_back(temp);
+      $$.children.push_back(Node($3));
+      $$.children.push_back($4);
+      $$.children.push_back(Node($5));
+      $$.children.push_back($6);
+      $$.children.push_back(Node($7));
+      $$.children.push_back($8);
+      $$.children.push_back(Node($9)); }
+  | FOR namelist IN explist DO block END {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back(Node($3));
+      $$.children.push_back($4);
+      $$.children.push_back(Node($5));
+      $$.children.push_back($6);
+      $$.children.push_back(Node($7)); }
+  | FUNCTION funcname funcbody {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | LOCAL FUNCTION NAME funcbody {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back(Node($2));
+      Node temp("name");
+      temp.children.push_back($3);
+      $$.children.push_back(temp);
+      $$.children.push_back($4); }
+  | LOCAL namelist {
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2); }
   ;
 
 laststat
@@ -243,28 +299,18 @@ explist
   ;
 
 exp
-  : NIL {
-      $$ = Node("exp", $1);
-      $$.children.push_back(Node("NIL")); }
+  : NIL { $$ = Node("exp", $1); }
   | FALSE {
-      $$ = Node("exp", $1);
-      $$.children.push_back(Node("FALSE")); }
+      $$ = Node("exp", $1); }
   | TRUE {
-      $$ = Node("exp", $1);
-      $$.children.push_back(Node("TRUE")); }
-  | NUMBER {
-      $$ = Node("exp", $1);
-      Node temp("number", "");
-      temp.children.push_back(Node($1));
-      $$.children.push_back(temp); }
+      $$ = Node("exp", $1); }
+  | NUMBER { $$ = Node("exp", $1); }
   | STR {
-      $$ = Node("exp", $1);
-      Node temp("string", "");
-      temp.children.push_back(Node($1));
-      $$.children.push_back(temp); }
+      $1.erase(0);
+      $1.erase($1.length());
+      $$ = Node("exp", "string: " + $1); }
   | DOTDOTDOT {
-      $$ = Node("exp", $1);
-      $$.children.push_back(Node("...")); }
+      $$ = Node("exp", $1); }
   | function {
       $$ = Node("exp", "");
       $$.children.push_back($1); }
@@ -280,14 +326,13 @@ exp
       $$.children.push_back($2);
       $$.children.push_back($3);
       if($2.value == "+")
-        $$.value = std::to_string(std::atoi($1.value.c_str()) + std::atoi($3.value.c_str()));
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) + std::strtof($3.value.c_str(), 0));
       else if ($2.value == "-")
-        $$.value = std::to_string(std::atoi($1.value.c_str()) - std::atoi($3.value.c_str()));
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) - std::strtof($3.value.c_str(), 0));
       else if ($2.value == "/")
-        $$.value = std::to_string(std::atoi($1.value.c_str()) / std::atoi($3.value.c_str()));
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) / std::strtof($3.value.c_str(), 0));
       else if ($2.value == "*")
-        $$.value = std::to_string(std::atoi($1.value.c_str()) * std::atoi($3.value.c_str()));
-  }
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) * std::strtof($3.value.c_str(), 0)); }
   | unop exp {
       $$ = Node("exp", "");
       $$.children.push_back($1);
@@ -324,48 +369,53 @@ functioncall
   ;
 
 args
-  : START_PARENTHESES END_PARENTHESES {
-      $$ = Node("args", "");
-      $$.children.push_back(Node("("));
-      $$.children.push_back(Node(")"));}
+  : START_PARENTHESES END_PARENTHESES { $$ = Node("args", "()"); }
   | START_PARENTHESES explist END_PARENTHESES {
-      $$ = Node("args", "");
-      $$.children.push_back(Node("("));
-      $$.children.push_back($2);
-      $$.children.push_back(Node(")")); }
+      $$ = Node("args", "(explist)");
+      $$.children.push_back($2); }
   | tableconstructor {
-      $$ = Node("args", "");
+      $$ = Node("args", "tableconstructor");
       $$.children.push_back($1); }
   | STR {
-      $$ = Node("args", "");
-      Node temp("str", "");
-      temp.children.push_back(Node($1));
-      $$.children.push_back(temp); }
+      $1.erase(0);
+      $1.erase($1.length());
+      $$ = Node("args", "(" + $1 + ")"); }
   ;
 
 function
-  : FUNCTION NAME funcbody {}
-
+  : FUNCTION NAME funcbody {
+      $$ = Node("function", "");
+      $$.children.push_back(Node($1));
+      Node temp("name");
+      temp.children.push_back($2);
+      $$.children.push_back(temp);
+      $$.children.push_back($3);}
   ;
+
 funcbody
-  : START_PARENTHESES END_PARENTHESES block END {}
-  | START_PARENTHESES parlist END_PARENTHESES block END {}
+  : START_PARENTHESES END_PARENTHESES block END {
+      $$ = Node("funcbody", "()");
+      $$.children.push_back($3);
+      $$.children.push_back(Node("END")); }
+  | START_PARENTHESES parlist END_PARENTHESES block END {
+      $$ = Node("funcbody", "(parlist)");
+      $$.children.push_back($2);
+      $$.children.push_back($4);
+      $$.children.push_back(Node("END")); }
   ;
 
 parlist
   : namelist COMMA {
       $$ = Node("parlist", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node(","));
-  }
+      $$.children.push_back(Node(",")); }
   | namelist DOTDOTDOT {
       $$ = Node("parlist", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node("..."));
-  }
+      $$.children.push_back(Node("...")); }
   | DOTDOTDOT {
       $$ = Node("parlist", "");
-      $$.children.push_back(Node("..."));}
+      $$.children.push_back(Node("...")); }
   ;
 
 tableconstructor
@@ -409,30 +459,30 @@ field
   ;
 
 fieldsep
-  : COMMA { $$ = Node("fieldsep", $1); $$.children.push_back(Node(","));}
-  | SEMICOLON { $$ = Node("fieldsep", $1); $$.children.push_back(Node(";")); }
+  : COMMA { $$ = Node("fieldsep", $1); }
+  | SEMICOLON { $$ = Node("fieldsep", $1); }
   ;
 
 binop
-  : PLUS { $$ = Node("binop", $1); $$.children.push_back(Node("+")); }
-  | MINUS { $$ = Node("binop", $1); $$.children.push_back(Node("-")); }
-  | STAR { $$ = Node("binop", $1); $$.children.push_back(Node("*")); }
-  | SLASH { $$ = Node("binop", $1); $$.children.push_back(Node("/")); }
-  | CARET { $$ = Node("binop", $1); $$.children.push_back(Node("^")); }
-  | PERCENT { $$ = Node("binop", $1); $$.children.push_back(Node("%")); }
-  | DOTDOT { $$ = Node("binop", $1); $$.children.push_back(Node("..")); }
-  | LESS { $$ = Node("binop", $1); $$.children.push_back(Node("<")); }
-  | LESSEQUAL { $$ = Node("binop", $1); $$.children.push_back(Node("<=")); }
-  | BIGGER { $$ = Node("binop", $1); $$.children.push_back(Node(">")); }
-  | BIGGEREQUAL { $$ = Node("binop", $1); $$.children.push_back(Node(">=")); }
-  | EQUALEQUAL { $$ = Node("binop", $1); $$.children.push_back(Node("==")); }
-  | NOTEQUAL { $$ = Node("binop", $1); $$.children.push_back(Node("~=")); }
-  | AND { $$ = Node("binop", $1); $$.children.push_back(Node("AND"));}
-  | OR { $$ = Node("binop", $1); $$.children.push_back(Node("OR"));}
+  : PLUS { $$ = Node("binop", $1); }
+  | MINUS { $$ = Node("binop", $1); }
+  | STAR { $$ = Node("binop", $1); }
+  | SLASH { $$ = Node("binop", $1); }
+  | CARET { $$ = Node("binop", $1); }
+  | PERCENT { $$ = Node("binop", $1); }
+  | DOTDOT { $$ = Node("binop", $1); }
+  | LESS { $$ = Node("binop", $1); }
+  | LESSEQUAL { $$ = Node("binop", $1); }
+  | BIGGER { $$ = Node("binop", $1); }
+  | BIGGEREQUAL { $$ = Node("binop", $1); }
+  | EQUALEQUAL { $$ = Node("binop", $1); }
+  | NOTEQUAL { $$ = Node("binop", $1); }
+  | AND { $$ = Node("binop", $1); }
+  | OR { $$ = Node("binop", $1); }
   ;
 
 unop
-  : MINUS { $$ = Node("unop", $1); $$.children.push_back(Node("-")); }
-  | NOT { $$ = Node("unop", $1); $$.children.push_back(Node("NOT")); }
-  | HASHTAG { $$ = Node("unop", $1); $$.children.push_back(Node("#")); }
+  : MINUS { $$ = Node("unop", $1); }
+  | NOT { $$ = Node("unop", $1); }
+  | HASHTAG { $$ = Node("unop", $1); }
   ;

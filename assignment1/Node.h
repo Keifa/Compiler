@@ -25,7 +25,9 @@ public:
 
   void dotFilePrep(std::string& str) {
     for(auto i=children.begin(); i!=children.end(); i++) {
-      str += '"' + tag + '"' + " -> " + '"' + (*i).tag + '"' + "\n";
+      std::string temp = '"' + tag + ' ' + value + '"' + " -> " + '"' + (*i).tag + ' ' + (*i).value + '"' + '\n';
+      if(str.find(temp) == -1)
+        str += temp;
       (*i).dotFilePrep(str);
     }
   }

@@ -39,10 +39,10 @@ REPEAT|repeat { return yy::parser::make_REPEAT(yytext); }
 = { return yy::parser::make_EQUAL(yytext); }
 == { return yy::parser::make_EQUALEQUAL(yytext); }
 , { return yy::parser::make_COMMA(yytext); }
-\n { /*return yy::parser::make_NEWLINE(yytext); */}
+\n ;
 ; { return yy::parser::make_SEMICOLON(yytext); }
 : { return yy::parser::make_COLON(yytext); }
-[ \t] { return yy::parser::make_WHITESPACE(yytext); }
+[ \t] ;
 \+ { return yy::parser::make_PLUS(yytext); }
 - { return yy::parser::make_MINUS(yytext); }
 \* { return yy::parser::make_STAR(yytext); }
