@@ -26,16 +26,18 @@ public:
   void dotFilePrep(std::string& str) {
     for(auto i=children.begin(); i!=children.end(); i++) {
       std::string temp = '"' + tag + ' ' + value + '"' + " -> " + '"' + (*i).tag + ' ' + (*i).value + '"' + '\n';
-      if(str.find(temp) == -1)
+      if(str.find(temp) == -1) {
         str += temp;
+      }
       (*i).dotFilePrep(str);
     }
   }
 
   void createDotFile() {
-    std::ofstream f("parseTree.dot");
+    std::ofstream f;
     std::string str = "digraph G {\n";
 
+    f.open("parse.txt", std::ofstream::trunc);
     if(f.is_open()) {
       dotFilePrep(str);
       str += "}";

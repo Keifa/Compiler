@@ -12,6 +12,7 @@ UNTIL|until { return yy::parser::make_UNTIL(yytext); }
 IF|if  { return yy::parser::make_IF(yytext); }
 THEN|then { return yy::parser::make_THEN(yytext); }
 ELSEIF|elseif { return yy::parser::make_ELSEIF(yytext); }
+ELSE|else { return yy::parser::make_ELSE(yytext); }
 FOR|for  { return yy::parser::make_FOR(yytext); }
 IN|in { return yy::parser::make_IN(yytext); }
 FUNCTION|function { return yy::parser::make_FUNCTION(yytext); }
