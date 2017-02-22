@@ -279,11 +279,8 @@ exp
   | TRUE { $$ = Node("exp", $1); }
   | NUMBER { $$ = Node("exp", $1); }
   | STR {
-      std::cout << $1;
       $1 = $1.substr(1, $1.length() - 2);
-      std::cout << " " << $1 << std::endl;
-      $$ = Node("exp", $1);
-      }
+      $$ = Node("exp", $1); }
   | DOTDOTDOT { $$ = Node("exp", $1); }
   | function { $$ = $1; }
   | prefixexp { $$ = $1; }
