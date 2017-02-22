@@ -6,16 +6,13 @@
 #include <string>
 #include <list>
 #include <fstream>
-#include <sstream>
-
-static int id = 0;
 
 class Node {
 public:
   std::string tag, value;
   std::list<Node> children;
-  Node(std::string t, std::string v) : tag(std::to_string(id++) + " " + t), value(v) {}
-  Node(std::string t) : tag(std::to_string(id++) + " " + t), value("") {}
+  Node(std::string t, std::string v) : tag(t), value(v) {}
+  Node(std::string t) : tag(t), value("") {}
   Node() { tag="uninitialised"; value="uninitialised"; }
 
   void dump(int depth=0) {
@@ -28,10 +25,10 @@ public:
 
   void dotFilePrep(std::string& str) {
     for(auto i=children.begin(); i!=children.end(); i++) {
-      std::string temp =  '"' + tag + ": " + value + '"';
-      temp += " -> ";
-      temp += '"' + (*i).tag + ": " + (*i).value + '"' + '\n';
-      str += temp;
+      std::string temp = '"' + tag + ' ' + value + '"' + " -> " + '"' + (*i).tag + ' ' + (*i).value + '"' + '\n';
+      if(str.find(temp) == -1) {
+        str += temp;
+      }
       (*i).dotFilePrep(str);
     }
   }
@@ -39,11 +36,11 @@ public:
   void createDotFile() {
     std::ofstream f;
     std::string str = "digraph G {\n";
-    dotFilePrep(str);
-    str += "}";
 
     f.open("parse.txt", std::ofstream::trunc);
     if(f.is_open()) {
+      dotFilePrep(str);
+      str += "}";
       f << str;
       f.close();
     }

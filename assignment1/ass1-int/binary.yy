@@ -11,7 +11,6 @@
   #define YY_DECL yy::parser::symbol_type yylex()
   YY_DECL;
   Node root("root");
-  int counter = 0;
 }
 
 %token <std::string> NAME
@@ -99,6 +98,7 @@
 
 root
   : chunk { root.children.push_back($1); }
+  //| block { root.children.push_back($1); }
   ;
 
 chunk
@@ -107,24 +107,28 @@ chunk
       $$.children.push_back($1); }
   | stat SEMICOLON {
       $$ = Node("chunk", "");
-      $$.children.push_back($1); }
+      $$.children.push_back($1);
+      $$.children.push_back(Node($2)); }
   | laststat {
       $$ = Node("chunk", "");
       $$.children.push_back($1); }
   | laststat SEMICOLON {
     $$ = Node("chunk", "");
-    $$.children.push_back($1); }
+    $$.children.push_back($1);
+    $$.children.push_back(Node($2)); }
   | chunk stat {
       $1.children.push_back($2);
       $$ = $1; }
   | chunk stat SEMICOLON {
       $1.children.push_back($2);
+      $1.children.push_back(Node($3));
       $$ = $1; }
   | chunk laststat {
       $1.children.push_back($2);
       $$ = $1; }
   | chunk laststat SEMICOLON {
       $1.children.push_back($2);
+      $1.children.push_back(Node($3));
       $$ = $1; }
   ;
 
@@ -138,60 +142,120 @@ stat
   : varlist EQUAL explist {
       $$ = Node("stat", "");
       $$.children.push_back($1);
+      $$.children.push_back(Node($2));
       $$.children.push_back($3); }
-  | functioncall { $$ = $1; }
+  | functioncall {
+      $$ = Node("stat", "");
+      $$.children.push_back($1); }
   | DO block END {
-      $$ = Node("stat", $1);
-      $$.children.push_back($2); }
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back($2);
+      $$.children.push_back(Node($3)); }
   | WHILE exp DO block END {
-      $$ = Node("stat", $1);
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
       $$.children.push_back($2);
-      $$.children.push_back($4); }
+      $$.children.push_back(Node($3));
+      $$.children.push_back($4);
+      $$.children.push_back(Node($5)); }
   | REPEAT block UNTIL exp {
-      $$ = Node("stat", $1);
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
       $$.children.push_back($2);
+      $$.children.push_back(Node($3));
       $$.children.push_back($4); }
   | IF exp THEN block END {
-      $$ = Node("stat", $1);
-      $$.children.push_back($2);
-      $$.children.push_back($4); }
+      $$ = Node("stat");
+      Node temp("if");
+      temp.children.push_back(Node($1));
+      temp.children.push_back($2);
+      temp.children.push_back(Node($3));
+      temp.children.push_back($4);
+      $$.children.push_back(temp);
+      $$.children.push_back(Node($5)); }
   | IF exp THEN block ELSE block END {
-      $$ = Node("stat", $1);
-      $$.children.push_back($2);
-      $$.children.push_back($4);
-      $$.children.push_back($5); }
+      $$ = Node("stat");
+      Node temp1("if");
+      temp1.children.push_back(Node($1));
+      temp1.children.push_back($2);
+      temp1.children.push_back(Node($3));
+      temp1.children.push_back($4);
+      $$.children.push_back(temp1);
+
+      Node temp2("else");
+      temp2.children.push_back(Node($5));
+      temp2.children.push_back($6);
+      $$.children.push_back(temp2);
+
+      $$.children.push_back(Node($7)); }
   | IF exp THEN block elseifLoop END {
-      $$ = Node("stat", $1);
-      $$.children.push_back($2);
-      $$.children.push_back($4);
-      $$.children.push_back($5); }
-  | IF exp THEN block elseifLoop ELSE block END {
-      $$ = Node("stat", $1);
-      $$.children.push_back($2);
-      $$.children.push_back($4);
+      $$ = Node("stat");
+
+      Node temp("if");
+      temp.children.push_back(Node($1));
+      temp.children.push_back($2);
+      temp.children.push_back(Node($3));
+      temp.children.push_back($4);
+      $$.children.push_back(temp);
+
+      $$.children.push_back(Node($5)); }
+  | IF exp THEN block elseifLoop ELSE block END{
+      $$ = Node("stat");
+
+      Node temp1("if");
+      temp1.children.push_back(Node($1));
+      temp1.children.push_back($2);
+      temp1.children.push_back(Node($3));
+      temp1.children.push_back($4);
+      $$.children.push_back(temp1);
+
       $$.children.push_back($5);
-      $$.children.push_back($7); }
+
+      Node temp2("else");
+      temp2.children.push_back(Node($6));
+      temp2.children.push_back($7);
+      $$.children.push_back(temp2);
+
+      $$.children.push_back(Node($8)); }
   | FOR NAME EQUAL exp COMMA exp DO block END {
-      $$ = Node("stat", $1);
-      $$.children.push_back(Node("name", $2));
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      Node temp("name");
+      temp.children.push_back(Node($2));
+      $$.children.push_back(temp);
+      $$.children.push_back(Node($3));
       $$.children.push_back($4);
+      $$.children.push_back(Node($5));
       $$.children.push_back($6);
-      $$.children.push_back($8); }
+      $$.children.push_back(Node($7));
+      $$.children.push_back($8);
+      $$.children.push_back(Node($9)); }
   | FOR namelist IN explist DO block END {
-      $$ = Node("stat", $1);
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
       $$.children.push_back($2);
+      $$.children.push_back(Node($3));
       $$.children.push_back($4);
-      $$.children.push_back($6); }
+      $$.children.push_back(Node($5));
+      $$.children.push_back($6);
+      $$.children.push_back(Node($7)); }
   | FUNCTION funcname funcbody {
-      $$ = Node("stat", $1);
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
       $$.children.push_back($2);
       $$.children.push_back($3); }
   | LOCAL FUNCTION NAME funcbody {
-      $$ = Node("stat", $1 + " " + $2);
-      $$.children.push_back(Node("name", $3));
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
+      $$.children.push_back(Node($2));
+      Node temp("name");
+      temp.children.push_back($3);
+      $$.children.push_back(temp);
       $$.children.push_back($4); }
   | LOCAL namelist {
-      $$ = Node("stat", $1);
+      $$ = Node("stat");
+      $$.children.push_back(Node($1));
       $$.children.push_back($2); }
   ;
 
@@ -216,21 +280,34 @@ elseifLoop
 
 laststat
   : RETURN {
-      $$ = Node("laststat", $1);
+      $$ = Node("laststat", "");
       $$.children.push_back(Node("RETURN")); }
   | RETURN explist {
-      $$ = Node("laststat", $1);
+      $$ = Node("laststat", "");
+      $$.children.push_back(Node("RETURN"));
       $$.children.push_back($2); }
-  | BREAK { $$ = Node("laststat", $1); }
+  | BREAK {
+      $$ = Node("laststat", "");
+      $$.children.push_back(Node("BREAK")); }
   ;
 
 funcname
-  : NAME { $$ = Node("funcname", $1); }
+  : NAME {
+      $$ = Node("funcname", $1);
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   | funcname DOT NAME {
-      $1.children.push_back(Node("name", $3));
+      $$.children.push_back(Node("."));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $1.children.push_back(temp);
       $$ = $1; }
   | funcname COLON NAME {
-      $1.children.push_back(Node("name", $3));
+      $1.children.push_back(Node(":"));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $1.children.push_back(temp);
       $$ = $1; }
   ;
 
@@ -239,28 +316,43 @@ varlist
       $$ = Node("varlist", "");
       $$.children.push_back($1); }
   | varlist COMMA var {
+      $1.children.push_back(Node(","));
       $1.children.push_back($3);
       $$ = $1; }
   ;
 
 var
-  : NAME { $$ = Node("var", $1); }
+  : NAME {
+      $$ = Node("var", "");
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   | prefixexp START_SQUARE_BRACKET exp END_SQUARE_BRACKET {
       $$ = Node("var", "");
       $$.children.push_back($1);
-      $$.children.push_back($3); }
+      $$.children.push_back(Node("["));
+      $$.children.push_back($3);
+      $$.children.push_back(Node("]")); }
   | prefixexp DOT NAME {
       $$ = Node("var", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node("name", $3)); }
+      $$.children.push_back(Node("."));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $$.children.push_back(temp); }
   ;
 
 namelist
   : NAME {
       $$ = Node("namelist", "");
-      $$.children.push_back(Node("name", $1)); }
+      Node temp("name", "");
+      temp.children.push_back(Node($1));
+      $$.children.push_back(temp); }
   | namelist COMMA NAME {
-      $1.children.push_back(Node("name", $3));
+      $1.children.push_back(Node(","));
+      Node temp("name", "");
+      temp.children.push_back(Node($3));
+      $1.children.push_back(temp);
       $$ = $1; }
   ;
 
@@ -269,6 +361,7 @@ explist
       $$ = Node("explist", "");
       $$.children.push_back($1); }
   | explist COMMA exp {
+      $1.children.push_back(Node(","));
       $1.children.push_back($3);
       $$ = $1; }
   ;
@@ -279,20 +372,35 @@ exp
   | TRUE { $$ = Node("exp", $1); }
   | NUMBER { $$ = Node("exp", $1); }
   | STR {
-      std::cout << $1;
-      $1 = $1.substr(1, $1.length() - 2);
-      std::cout << " " << $1 << std::endl;
-      $$ = Node("exp", $1);
-      }
+      $1.erase(0);
+      $1.erase($1.length());
+      $$ = Node("exp", "string: " + $1); }
   | DOTDOTDOT { $$ = Node("exp", $1); }
-  | function { $$ = $1; }
-  | prefixexp { $$ = $1; }
-  | tableconstructor { $$ = $1; }
+  | function {
+      $$ = Node("exp", "");
+      $$.children.push_back($1); }
+  | prefixexp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1); }
+  | tableconstructor {
+      $$ = Node("exp", "");
+      $$.children.push_back($1); }
   | exp binop exp {
       $$ = Node("exp", "");
       $$.children.push_back($1);
       $$.children.push_back($2);
       $$.children.push_back($3);
+
+      /*
+      if($2.value == "+")
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) + std::strtof($3.value.c_str(), 0));
+      else if ($2.value == "-")
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) - std::strtof($3.value.c_str(), 0));
+      else if ($2.value == "/")
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) / std::strtof($3.value.c_str(), 0));
+      else if ($2.value == "*")
+        $$.value = std::to_string(std::strtof($1.value.c_str(), 0) * std::strtof($3.value.c_str(), 0));
+      */
     }
   | unop exp {
       $$ = Node("exp", "");
@@ -301,9 +409,17 @@ exp
   ;
 
 prefixexp
-  : var { $$ = $1; }
-  | functioncall { $$ = $1; }
-  | START_PARENTHESES exp END_PARENTHESES { $$ = $2; }
+  : var {
+      $$ = Node("prefixexp", "");
+      $$ .children.push_back($1); }
+  | functioncall {
+      $$ = Node("prefixexp", "");
+      $$.children.push_back($1); }
+  | START_PARENTHESES exp END_PARENTHESES {
+      $$ = Node("prefixexp", "");
+      $$.children.push_back(Node("("));
+      $$.children.push_back($2);
+      $$.children.push_back(Node(")")); }
   ;
 
 functioncall
@@ -314,24 +430,25 @@ functioncall
   | prefixexp COLON NAME args {
       $$ = Node("functioncall", "");
       $$.children.push_back($1);
-      Node temp("name", $3);
+      $$.children.push_back(Node(":"));
+      Node temp("name", "");
       temp.children.push_back(Node($1));
       $$.children.push_back(temp);
       $$.children.push_back($4); }
   ;
 
 args
-  : START_PARENTHESES END_PARENTHESES {
-      $$ = Node("args", ""); }
+  : START_PARENTHESES END_PARENTHESES { $$ = Node("args", "()"); }
   | START_PARENTHESES explist END_PARENTHESES {
-      $$ = Node("args", "");
+      $$ = Node("args", "(explist)");
       $$.children.push_back($2); }
   | tableconstructor {
-      $$ = Node("args", "");
+      $$ = Node("args", "tableconstructor");
       $$.children.push_back($1); }
   | STR {
-      $1 = $1.substr(1, $1.length() - 2);
-      $$ = Node("args", $1); }
+      $1.erase(0);
+      $1.erase($1.length());
+      $$ = Node("args", "(" + $1 + ")"); }
   ;
 
 function
@@ -341,17 +458,19 @@ function
       Node temp("name");
       temp.children.push_back($2);
       $$.children.push_back(temp);
-      $$.children.push_back($3); }
+      $$.children.push_back($3);}
   ;
 
 funcbody
   : START_PARENTHESES END_PARENTHESES block END {
-      $$ = Node("funcbody", "");
-      $$.children.push_back($3); }
+      $$ = Node("funcbody", "()");
+      $$.children.push_back($3);
+      $$.children.push_back(Node("END")); }
   | START_PARENTHESES parlist END_PARENTHESES block END {
-      $$ = Node("funcbody", "");
+      $$ = Node("funcbody", "(parlist)");
       $$.children.push_back($2);
-      $$.children.push_back($4); }
+      $$.children.push_back($4);
+      $$.children.push_back(Node("END")); }
   ;
 
 parlist
@@ -360,7 +479,8 @@ parlist
       $$.children.push_back($1); }
   | namelist COMMA {
       $$ = Node("parlist", "");
-      $$.children.push_back($1); }
+      $$.children.push_back($1);
+      $$.children.push_back(Node(",")); }
   | namelist DOTDOTDOT {
       $$ = Node("parlist", "");
       $$.children.push_back($1);
@@ -372,10 +492,14 @@ parlist
 
 tableconstructor
   : START_BRACKET END_BRACKET {
-      $$ = Node("tableconstructor", ""); }
+      $$ = Node("tableconstructor", "");
+      $$.children.push_back(Node("["));
+      $$.children.push_back(Node("]")); }
   | START_BRACKET fieldlist END_BRACKET {
       $$ = Node("tableconstructor", "");
-      $$.children.push_back($2); }
+      $$.children.push_back(Node("["));
+      $$.children.push_back($2);
+      $$.children.push_back(Node("]")); }
   ;
 
 fieldlist
@@ -409,7 +533,8 @@ field
       $$.children.push_back($3); }
   | exp {
       $$ = Node("field", "");
-      $$.children.push_back($1); }
+      $$.children.push_back($1);
+      $$; }
   ;
 
 fieldsep
