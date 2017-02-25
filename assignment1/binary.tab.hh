@@ -932,9 +932,9 @@ namespace yy {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 544,     ///< Last index in yytable_.
+      yylast_ = 584,     ///< Last index in yytable_.
       yynnts_ = 28,  ///< Number of nonterminal symbols.
-      yyfinal_ = 55, ///< Termination state number.
+      yyfinal_ = 56, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 54  ///< Number of tokens.

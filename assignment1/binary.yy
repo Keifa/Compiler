@@ -108,25 +108,19 @@ chunk
   : stat {
       $$ = Node("chunk", "");
       $$.children.push_back($1); }
-  | stat SEMICOLON {
-      $$ = Node("chunk", "");
-      $$.children.push_back($1); }
   | laststat {
       $$ = Node("chunk", "");
       $$.children.push_back($1); }
-  | laststat SEMICOLON {
+  | SEMICOLON {
     $$ = Node("chunk", "");
     $$.children.push_back($1); }
   | chunk stat {
       $1.children.push_back($2);
       $$ = $1; }
-  | chunk stat SEMICOLON {
-      $1.children.push_back($2);
-      $$ = $1; }
   | chunk laststat {
       $1.children.push_back($2);
       $$ = $1; }
-  | chunk laststat SEMICOLON {
+  | chunk SEMICOLON {
       $1.children.push_back($2);
       $$ = $1; }
   ;
@@ -162,7 +156,9 @@ stat
       $$ = Node("stat", $1);
       $$.children.push_back($2);
       $$.children.push_back($4);
-      $$.children.push_back($5); }
+      Node temp = Node("else");
+      temp.children.push_back($6);
+      $$.children.push_back(temp); }
   | IF exp THEN block elseifLoop END {
       $$ = Node("stat", $1);
       $$.children.push_back($2);
@@ -202,16 +198,12 @@ elseifLoop
   : ELSEIF exp THEN block {
       $$ = Node("elseifLoop");
       Node temp("elseif");
-      temp.children.push_back(Node($1));
       temp.children.push_back($2);
-      temp.children.push_back(Node($3));
       temp.children.push_back($4);
       $$.children.push_back(temp); }
   | elseifLoop ELSEIF exp THEN block {
       Node temp("elseif");
-      temp.children.push_back(Node($2));
       temp.children.push_back($3);
-      temp.children.push_back(Node($4));
       temp.children.push_back($5);
       $1.children.push_back(temp);
       $$ = $1; }
@@ -390,15 +382,15 @@ parlist
   : namelist {
       $$ = Node("parlist", "");
       $$.children.push_back($1); }
+  | DOTDOTDOT {
+      $$ = Node("parlist", "");
+      $$.children.push_back(Node("...")); }
   | namelist COMMA {
       $$ = Node("parlist", "");
       $$.children.push_back($1); }
   | namelist DOTDOTDOT {
       $$ = Node("parlist", "");
       $$.children.push_back($1);
-      $$.children.push_back(Node("...")); }
-  | DOTDOTDOT {
-      $$ = Node("parlist", "");
       $$.children.push_back(Node("...")); }
   ;
 
@@ -417,13 +409,14 @@ fieldlist
   | field fieldsep {
       $$ = Node("fieldlist", "");
       $$.children.push_back($1);
-      $$.children.push_back($2); }
+      //$$.children.push_back($2);
+    }
   | fieldlist field {
       $1.children.push_back($2);
       $$ = $1; }
   | fieldlist field fieldsep {
       $1.children.push_back($2);
-      $1.children.push_back($3);
+      //$1.children.push_back($3);
       $$ = $1; }
   ;
 
