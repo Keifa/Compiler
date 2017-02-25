@@ -98,7 +98,7 @@
 %%
 
 root
-  : chunk { root.children.push_back($1); }
+  : chunk { root = $1; }
   ;
 
 chunk

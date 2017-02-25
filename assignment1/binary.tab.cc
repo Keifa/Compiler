@@ -687,7 +687,7 @@ namespace yy {
             {
   case 2:
 #line 101 "binary.yy" // lalr1.cc:859
-    { root.children.push_back(yystack_[0].value.as< Node > ()); }
+    { root = yystack_[0].value.as< Node > (); }
 #line 692 "binary.tab.cc" // lalr1.cc:859
     break;
 

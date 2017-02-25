@@ -1,5 +1,4 @@
 digraph G {
-"0 root: " -> "42 chunk: "
 "42 chunk: " -> "41 stat: function"
 "41 stat: function" -> "1 funcname: fibonacci"
 "41 stat: function" -> "40 funcbody: "
