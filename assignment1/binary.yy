@@ -94,6 +94,9 @@
 %type <Node> unop
 
 %type <Node> elseifLoop
+%type <Node> baseExp
+%type <Node> divMulExp
+%type <Node> addSubExp
 
 %%
 
@@ -274,6 +277,48 @@ explist
   ;
 
 exp
+  : addSubExp { $$ = $1; }
+  | exp binop exp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3);
+    }
+  | unop exp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2); }
+  ;
+
+addSubExp
+  : divMulExp { $$ = $1; }
+  | addSubExp PLUS divMulExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | addSubExp MINUS divMulExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+divMulExp
+  : baseExp { $$ = $1; }
+  | divMulExp SLASH baseExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | divMulExp STAR baseExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+baseExp
   : NIL { $$ = Node("exp", $1); }
   | FALSE { $$ = Node("exp", $1); }
   | TRUE { $$ = Node("exp", $1); }
@@ -285,16 +330,6 @@ exp
   | function { $$ = $1; }
   | prefixexp { $$ = $1; }
   | tableconstructor { $$ = $1; }
-  | exp binop exp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3);
-    }
-  | unop exp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2); }
   ;
 
 prefixexp
@@ -415,11 +450,7 @@ fieldsep
   ;
 
 binop
-  : PLUS { $$ = Node("binop", $1); }
-  | MINUS { $$ = Node("binop", $1); }
-  | STAR { $$ = Node("binop", $1); }
-  | SLASH { $$ = Node("binop", $1); }
-  | CARET { $$ = Node("binop", $1); }
+  : CARET { $$ = Node("binop", $1); }
   | PERCENT { $$ = Node("binop", $1); }
   | DOTDOT { $$ = Node("binop", $1); }
   | LESS { $$ = Node("binop", $1); }
