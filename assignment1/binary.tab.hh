@@ -279,6 +279,9 @@ namespace yy {
       // namelist
       // explist
       // exp
+      // addSubExp
+      // mulDivExp
+      // baseExp
       // prefixexp
       // functioncall
       // args
@@ -289,6 +292,8 @@ namespace yy {
       // fieldlist
       // field
       // fieldsep
+      // addSubBinop
+      // mulDivBinop
       // binop
       // unop
       char dummy1[sizeof(Node)];
@@ -929,9 +934,9 @@ namespace yy {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 590,     ///< Last index in yytable_.
-      yynnts_ = 25,  ///< Number of nonterminal symbols.
-      yyfinal_ = 52, ///< Termination state number.
+      yylast_ = 546,     ///< Last index in yytable_.
+      yynnts_ = 30,  ///< Number of nonterminal symbols.
+      yyfinal_ = 55, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 54  ///< Number of tokens.
@@ -1023,18 +1028,23 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // prefixexp
-      case 68: // functioncall
-      case 69: // args
-      case 70: // function
-      case 71: // funcbody
-      case 72: // parlist
-      case 73: // tableconstructor
-      case 74: // fieldlist
-      case 75: // field
-      case 76: // fieldsep
-      case 77: // binop
-      case 78: // unop
+      case 67: // addSubExp
+      case 68: // mulDivExp
+      case 69: // baseExp
+      case 70: // prefixexp
+      case 71: // functioncall
+      case 72: // args
+      case 73: // function
+      case 74: // funcbody
+      case 75: // parlist
+      case 76: // tableconstructor
+      case 77: // fieldlist
+      case 78: // field
+      case 79: // fieldsep
+      case 80: // addSubBinop
+      case 81: // mulDivBinop
+      case 82: // binop
+      case 83: // unop
         value.copy< Node > (other.value);
         break;
 
@@ -1119,18 +1129,23 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // prefixexp
-      case 68: // functioncall
-      case 69: // args
-      case 70: // function
-      case 71: // funcbody
-      case 72: // parlist
-      case 73: // tableconstructor
-      case 74: // fieldlist
-      case 75: // field
-      case 76: // fieldsep
-      case 77: // binop
-      case 78: // unop
+      case 67: // addSubExp
+      case 68: // mulDivExp
+      case 69: // baseExp
+      case 70: // prefixexp
+      case 71: // functioncall
+      case 72: // args
+      case 73: // function
+      case 74: // funcbody
+      case 75: // parlist
+      case 76: // tableconstructor
+      case 77: // fieldlist
+      case 78: // field
+      case 79: // fieldsep
+      case 80: // addSubBinop
+      case 81: // mulDivBinop
+      case 82: // binop
+      case 83: // unop
         value.copy< Node > (v);
         break;
 
@@ -1251,18 +1266,23 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // prefixexp
-      case 68: // functioncall
-      case 69: // args
-      case 70: // function
-      case 71: // funcbody
-      case 72: // parlist
-      case 73: // tableconstructor
-      case 74: // fieldlist
-      case 75: // field
-      case 76: // fieldsep
-      case 77: // binop
-      case 78: // unop
+      case 67: // addSubExp
+      case 68: // mulDivExp
+      case 69: // baseExp
+      case 70: // prefixexp
+      case 71: // functioncall
+      case 72: // args
+      case 73: // function
+      case 74: // funcbody
+      case 75: // parlist
+      case 76: // tableconstructor
+      case 77: // fieldlist
+      case 78: // field
+      case 79: // fieldsep
+      case 80: // addSubBinop
+      case 81: // mulDivBinop
+      case 82: // binop
+      case 83: // unop
         value.template destroy< Node > ();
         break;
 
@@ -1354,18 +1374,23 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // prefixexp
-      case 68: // functioncall
-      case 69: // args
-      case 70: // function
-      case 71: // funcbody
-      case 72: // parlist
-      case 73: // tableconstructor
-      case 74: // fieldlist
-      case 75: // field
-      case 76: // fieldsep
-      case 77: // binop
-      case 78: // unop
+      case 67: // addSubExp
+      case 68: // mulDivExp
+      case 69: // baseExp
+      case 70: // prefixexp
+      case 71: // functioncall
+      case 72: // args
+      case 73: // function
+      case 74: // funcbody
+      case 75: // parlist
+      case 76: // tableconstructor
+      case 77: // fieldlist
+      case 78: // field
+      case 79: // fieldsep
+      case 80: // addSubBinop
+      case 81: // mulDivBinop
+      case 82: // binop
+      case 83: // unop
         value.move< Node > (s.value);
         break;
 
@@ -1802,7 +1827,7 @@ namespace yy {
 
 
 } // yy
-#line 1806 "binary.tab.hh" // lalr1.cc:377
+#line 1831 "binary.tab.hh" // lalr1.cc:377
 
 
 

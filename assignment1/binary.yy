@@ -94,6 +94,11 @@
 %type <Node> unop
 
 %type <Node> elseifLoop
+%type <Node> addSubBinop
+%type <Node> mulDivBinop
+%type <Node> mulDivExp
+%type <Node> addSubExp
+%type <Node> baseExp
 
 %%
 
@@ -274,10 +279,41 @@ explist
   ;
 
 exp
+  : addSubExp { std::cout << "exp\n"; $$ = $1; }
+  | exp binop exp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | unop exp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2); }
+  ;
+
+addSubExp
+  : mulDivExp { std::cout << "addSubExp\n"; $$ = $1; }
+  | mulDivExp addSubBinop mulDivExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+mulDivExp
+  : baseExp { std::cout << "mulDivExp\n"; $$ = $1; }
+  | baseExp mulDivBinop baseExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+baseExp
   : NIL { $$ = Node("exp", $1); }
   | FALSE { $$ = Node("exp", $1); }
   | TRUE { $$ = Node("exp", $1); }
-  | NUMBER { $$ = Node("exp", $1); }
+  | NUMBER { std::cout << "baseExp\n"; $$ = Node("exp", $1); }
   | STR {
       $1 = $1.substr(1, $1.length() - 2);
       $$ = Node("exp", $1); }
@@ -285,16 +321,6 @@ exp
   | function { $$ = $1; }
   | prefixexp { $$ = $1; }
   | tableconstructor { $$ = $1; }
-  | exp binop exp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3);
-    }
-  | unop exp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2); }
   ;
 
 prefixexp
@@ -414,12 +440,18 @@ fieldsep
   | SEMICOLON { $$ = Node("fieldsep", $1); }
   ;
 
-binop
+addSubBinop
   : PLUS { $$ = Node("binop", $1); }
   | MINUS { $$ = Node("binop", $1); }
+  ;
+
+mulDivBinop
+  : SLASH { $$ = Node("binop", $1); }
   | STAR { $$ = Node("binop", $1); }
-  | SLASH { $$ = Node("binop", $1); }
-  | CARET { $$ = Node("binop", $1); }
+  ;
+
+binop
+  : CARET { $$ = Node("binop", $1); }
   | PERCENT { $$ = Node("binop", $1); }
   | DOTDOT { $$ = Node("binop", $1); }
   | LESS { $$ = Node("binop", $1); }
