@@ -83,7 +83,7 @@ public:
 
   string convert(BBlock* out) {
     // Write three address instructions to output
-    cout << "Variable\n";
+    //cout << "Variable\n";
     return name;
   }
 };
@@ -99,7 +99,7 @@ public:
 
   string convert(BBlock* out) {
     // Write three address instructions to output
-    cout << "Constant\n";
+    //cout << "Constant\n";
     return name;
   }
 };
@@ -112,7 +112,7 @@ public:
     lhs(lhs), rhs(rhs) {}
 
   string convert(BBlock* out) {
-    cout << "Add\n";
+    //cout << "Add\n";
     out->instructions.push_back(ThreeAd(makeNames(), '+', lhs->convert(out), rhs->convert(out)));
     return name;
   }
@@ -126,7 +126,7 @@ public:
     lhs(lhs), rhs(rhs) {}
 
   string convert(BBlock* out) {
-    cout << "Mult\n";
+    //cout << "Mult\n";
     out->instructions.push_back(ThreeAd(makeNames(), '*', lhs->convert(out), rhs->convert(out)));
     return name;
   }
@@ -140,7 +140,7 @@ public:
   Equality(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
 
   string convert(BBlock* out) {
-    cout << "Equality\n";
+    //cout << "Equality\n";
     out->instructions.push_back(ThreeAd(makeNames(), 'c', lhs->convert(out), rhs->convert(out)));
     return name;
   }
@@ -165,7 +165,7 @@ public:
 
   void convert(BBlock **out) {
     // Write three address instructions to output
-    cout << "Assignment " << lhs->name << endl;
+    //cout << "Assignment " << lhs->name << endl;
     (*out)->instructions.push_back(ThreeAd(lhs->convert(*out), '=', lhs->convert(*out), rhs->convert(*out)));
   }
 };
@@ -176,24 +176,26 @@ public:
   Statement *tState, *fState;
 
   If(Expression* expr, Statement* tState, Statement* fState) :
-    expr(expr), tState(tState), fState(fState){}
+    expr(expr), tState(tState), fState(fState) {}
 
   void convert(BBlock **out) {
-    // Write three address instructions to output
-    cout << "If\n";
     expr->convert(*out);
 
+    BBlock* contBlock = new BBlock();
+
     // True
-    cout << "True\n";
     BBlock* trueBlock = new BBlock();
     (*out)->tExit = trueBlock;
+    trueBlock->tExit = contBlock;
     tState->convert(&trueBlock);
 
     // False
-    cout << "False\n";
     BBlock* falseBlock = new BBlock();
     (*out)->fExit = falseBlock;
+    falseBlock->tExit = contBlock;
     fState->convert(&falseBlock);
+
+    (*out) = contBlock;
   }
 };
 
