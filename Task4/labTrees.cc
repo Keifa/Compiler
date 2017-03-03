@@ -47,7 +47,7 @@ public:
     for(auto i : instructions)
       i.dump();
     cout << "True:  " << tExit << endl;
-    cout << "False: " << fExit << endl;
+    cout << "False: " << fExit << endl << endl;
   }
 };
 int BBlock::nCounter = 0;
@@ -141,7 +141,7 @@ public:
 
   string convert(BBlock* out) {
     //cout << "Equality\n";
-    out->instructions.push_back(ThreeAd(makeNames(), 'c', lhs->convert(out), rhs->convert(out)));
+    out->instructions.push_back(ThreeAd(makeNames(), 'e', lhs->convert(out), rhs->convert(out)));
     return name;
   }
 };
@@ -166,7 +166,8 @@ public:
   void convert(BBlock **out) {
     // Write three address instructions to output
     //cout << "Assignment " << lhs->name << endl;
-    (*out)->instructions.push_back(ThreeAd(lhs->convert(*out), '=', lhs->convert(*out), rhs->convert(*out)));
+    string temp = rhs->convert(*out);
+    (*out)->instructions.push_back(ThreeAd(lhs->convert(*out), '=', temp, temp));
   }
 };
 
@@ -186,14 +187,16 @@ public:
     // True
     BBlock* trueBlock = new BBlock();
     (*out)->tExit = trueBlock;
-    trueBlock->tExit = contBlock;
     tState->convert(&trueBlock);
+    trueBlock->tExit = contBlock;
+
 
     // False
     BBlock* falseBlock = new BBlock();
     (*out)->fExit = falseBlock;
-    falseBlock->tExit = contBlock;
     fState->convert(&falseBlock);
+    falseBlock->tExit = contBlock;
+
 
     (*out) = contBlock;
   }

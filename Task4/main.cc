@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     y = x * 2
   x = x + 1
   */
-  Statement* test = new Seq({
+  Statement* test1 = new Seq({
     new Assignment(
       "x",
       new Add(
@@ -71,46 +71,38 @@ int main(int argc, char *argv[]) {
       "x",
       new Add(
         new Variable("x"),
-        new Constant(1)
-      )
-    ),
+        new Constant(1))),
     new Assignment(
       "y",
       new Add(
         new Variable("y"),
-        new Constant(1)
-      )
-    ),
+        new Constant(1))),
     new If(
       new Equality(
         new Variable("x"),
-        new Constant(0)
-      ),
+        new Constant(0)),
       new If(
         new Equality(
           new Variable("y"),
-          new Constant(0)
-        ),
+          new Constant(0)),
         new Assignment(
           "x",
-          new Constant(1)
-        ),
+          new Constant(1)),
         new Assignment(
           "y",
-          new Constant(2)
-        )
-      ),
+          new Constant(2))),
       new Assignment(
         "y",
-        new Constant(3)
-      )
-    )
+        new Constant(3)))
   });
 
   BBlock* start = new BBlock();
   BBlock* tempStart = start;
   test2->convert(&tempStart);
   dumpCFG(start);
+
+  long x=10,y=0,_t0=17,_t1=17,_t2=17,_t3=17,_t4=17;
+
 
   return 0;
 }
