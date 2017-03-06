@@ -1,0 +1,12 @@
+digraph structs {
+	node [shape=record];
+	_t0 [label="<x> x|<+> +|<1> 1"];
+	x [label="<_t0> _t0|<=> =|<_t0> _t0"];
+	_t1 [label="<x> x|<e> e|<10> 10"];
+	_t2 [label="<x> x|<+> +|<1> 1"];
+	y [label="<_t2> _t2|<=> =|<_t2> _t2"];
+	_t4 [label="<x> x|<+> +|<1> 1"];
+	x [label="<_t4> _t4|<=> =|<_t4> _t4"];
+	_t3 [label="<x> x|<*> *|<2> 2"];
+	y [label="<_t3> _t3|<=> =|<_t3> _t3"];
+}

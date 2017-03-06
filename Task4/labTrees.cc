@@ -10,11 +10,14 @@
 #include <initializer_list>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
 /************* Three Address Instructions *************/
 class ThreeAd {
+private:
+  static int threeAdCounter;
 public:
   string name,lhs,rhs;
   char op;
@@ -26,8 +29,15 @@ public:
     cout << name << " <- ";
     cout << lhs << " " << op << " " << rhs << endl;
   }
-};
 
+  void dot(string& str) {
+    str +=  "\t" + name + " [label=\"" +
+      "<" + lhs + "> " + lhs + "|" +
+      "<" + op + "> " + op + "|"
+      "<" + rhs + "> " + rhs + "\"];\n";
+  }
+};
+int ThreeAd::threeAdCounter = 0;
 
 /* Basic Blocks */
 class BBlock {
@@ -48,6 +58,11 @@ public:
       i.dump();
     cout << "True:  " << tExit << endl;
     cout << "False: " << fExit << endl << endl;
+  }
+
+  void dotFile(string& str) {
+    for(auto i : instructions)
+      i.dot(str);
   }
 };
 int BBlock::nCounter = 0;
@@ -236,4 +251,35 @@ void dumpCFG(BBlock *start) {
     if(next->fExit != NULL && done.find(next->fExit) == done.end())
       todo.insert(next->fExit);
   }
+}
+
+void generateDotFile(BBlock* start) {
+  ofstream file("tree.dot", ios::trunc);
+  string dotString = "";
+  set<BBlock *> done, todo;
+  todo.insert(start);
+  while(todo.size() > 0) {
+    // Pop an arbitrary element from todo set
+    auto first = todo.begin();
+    BBlock *next = *first;
+    todo.erase(first);
+    next->dotFile(dotString);
+    done.insert(next);
+    if(next->tExit != NULL && done.find(next->tExit) == done.end())
+      todo.insert(next->tExit);
+    if(next->fExit != NULL && done.find(next->fExit) == done.end())
+      todo.insert(next->fExit);
+  }
+
+
+
+  dotString.insert(0, "digraph structs {\n\tnode [shape=record];\n");
+  dotString += "}";
+
+  cout << dotString << endl;
+  if(file.is_open()) {
+    file << dotString;
+    file.close();
+  }
+  else { cout << "Unable to open file\n"; }
 }
