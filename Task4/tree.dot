@@ -1,12 +1,17 @@
 digraph structs {
 	node [shape=record];
-	_t0 [label="<x> x|<+> +|<1> 1"];
-	x [label="<_t0> _t0|<=> =|<_t0> _t0"];
-	_t1 [label="<x> x|<e> e|<10> 10"];
-	_t2 [label="<x> x|<+> +|<1> 1"];
-	y [label="<_t2> _t2|<=> =|<_t2> _t2"];
-	_t4 [label="<x> x|<+> +|<1> 1"];
-	x [label="<_t4> _t4|<=> =|<_t4> _t4"];
-	_t3 [label="<x> x|<*> *|<2> 2"];
-	y [label="<_t3> _t3|<=> =|<_t3> _t3"];
+	blk0 [label="{<f0> _t0 \<\- x + 1|<f1> x \<\- _t0 = _t0|<f2> _t1 \<\- y + 1|<f3> y \<\- _t1 = _t1|<f4> _t2 \<\- x e 0}"];
+	blk2 [label="{<f0> _t3 \<\- y e 0}"];
+	blk4 [label="{<f0> x \<\- 1 = 1}"];
+			blk5 [label="{<f0> y \<\- 2 = 2}"];
+			blk6 [label="{<f0> y \<\- 3 = 3}"];
+		blk0 -> blk2 [color="green"];
+	blk2 -> blk4 [color="green"];
+	blk4 -> blk3 [color="green"];
+	blk3 -> blk1 [color="green"];
+	blk2 -> blk5 [color="red"];
+	blk5 -> blk3 [color="green"];
+	blk3 -> blk1 [color="green"];
+	blk0 -> blk6 [color="red"];
+	blk6 -> blk1 [color="green"];
 }

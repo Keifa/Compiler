@@ -82,9 +82,9 @@ int main(int argc, char *argv[]) {
 
   BBlock* start = new BBlock();
   BBlock* tempStart = start;
-  test1->convert(&tempStart);
+  test2->convert(&tempStart);
   dumpCFG(start);
   generateDotFile(start);
-  
+
   return 0;
 }

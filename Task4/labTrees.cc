@@ -16,8 +16,6 @@ using namespace std;
 
 /************* Three Address Instructions *************/
 class ThreeAd {
-private:
-  static int threeAdCounter;
 public:
   string name,lhs,rhs;
   char op;
@@ -30,14 +28,10 @@ public:
     cout << lhs << " " << op << " " << rhs << endl;
   }
 
-  void dot(string& str) {
-    str +=  "\t" + name + " [label=\"" +
-      "<" + lhs + "> " + lhs + "|" +
-      "<" + op + "> " + op + "|"
-      "<" + rhs + "> " + rhs + "\"];\n";
+  string toStr() {
+    return (name + " \\<\\- " + lhs + " " + op + " " + rhs);
   }
 };
-int ThreeAd::threeAdCounter = 0;
 
 /* Basic Blocks */
 class BBlock {
@@ -60,9 +54,33 @@ public:
     cout << "False: " << fExit << endl << endl;
   }
 
-  void dotFile(string& str) {
-    for(auto i : instructions)
-      i.dot(str);
+  void dotFile(string& nodeStr, string& conStr) {
+    nodeStr += "\t" + name + " [label=\"{";
+    int instCount = 0;
+
+    for(auto i : instructions) {
+      nodeStr += "<f" + to_string(instCount++) + "> ";
+      nodeStr += i.toStr();
+      nodeStr += "|";
+    }
+
+    if(instCount > 0) {
+      nodeStr.pop_back();
+      nodeStr += "}\"];\n";
+    }
+    else {
+      nodeStr = nodeStr.substr(0, nodeStr.size() - ("\t" + name + " [label=\"").size());
+    }
+
+    if(tExit != NULL) {
+      conStr += "\t" + name + " -> " + tExit->name + " [color=\"green\"];\n";
+      tExit->dotFile(nodeStr, conStr);
+    }
+
+    if(fExit != NULL) {
+      conStr += "\t" + name + " -> " + fExit->name + " [color=\"red\"];\n";
+      fExit->dotFile(nodeStr, conStr);
+    }
   }
 };
 int BBlock::nCounter = 0;
@@ -254,31 +272,17 @@ void dumpCFG(BBlock *start) {
 }
 
 void generateDotFile(BBlock* start) {
+  string dotNodeStr = "", dotNodeConStr = "";
+  start->dotFile(dotNodeStr, dotNodeConStr);
+
+  dotNodeStr.insert(0, "digraph structs {\n\tnode [shape=record];\n");
+  dotNodeConStr += "}";
+
+  cout << dotNodeStr << dotNodeConStr << endl;
   ofstream file("tree.dot", ios::trunc);
-  string dotString = "";
-  set<BBlock *> done, todo;
-  todo.insert(start);
-  while(todo.size() > 0) {
-    // Pop an arbitrary element from todo set
-    auto first = todo.begin();
-    BBlock *next = *first;
-    todo.erase(first);
-    next->dotFile(dotString);
-    done.insert(next);
-    if(next->tExit != NULL && done.find(next->tExit) == done.end())
-      todo.insert(next->tExit);
-    if(next->fExit != NULL && done.find(next->fExit) == done.end())
-      todo.insert(next->fExit);
-  }
-
-
-
-  dotString.insert(0, "digraph structs {\n\tnode [shape=record];\n");
-  dotString += "}";
-
-  cout << dotString << endl;
   if(file.is_open()) {
-    file << dotString;
+    file << dotNodeStr;
+    file << dotNodeConStr;
     file.close();
   }
   else { cout << "Unable to open file\n"; }
