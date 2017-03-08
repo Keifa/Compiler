@@ -279,8 +279,14 @@ namespace yy {
       // namelist
       // explist
       // exp
+      // orExp
+      // andExp
+      // compareExp
+      // dotDotExp
       // addSubExp
-      // divMulExp
+      // divMulModExp
+      // notHashUnExp
+      // powExp
       // baseExp
       // prefixexp
       // functioncall
@@ -292,8 +298,6 @@ namespace yy {
       // fieldlist
       // field
       // fieldsep
-      // binop
-      // unop
       char dummy1[sizeof(Node)];
 
       // NAME
@@ -932,9 +936,9 @@ namespace yy {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 584,     ///< Last index in yytable_.
-      yynnts_ = 28,  ///< Number of nonterminal symbols.
-      yyfinal_ = 56, ///< Termination state number.
+      yylast_ = 332,     ///< Last index in yytable_.
+      yynnts_ = 32,  ///< Number of nonterminal symbols.
+      yyfinal_ = 59, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 54  ///< Number of tokens.
@@ -1026,21 +1030,25 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // addSubExp
-      case 68: // divMulExp
-      case 69: // baseExp
-      case 70: // prefixexp
-      case 71: // functioncall
-      case 72: // args
-      case 73: // function
-      case 74: // funcbody
-      case 75: // parlist
-      case 76: // tableconstructor
-      case 77: // fieldlist
-      case 78: // field
-      case 79: // fieldsep
-      case 80: // binop
-      case 81: // unop
+      case 67: // orExp
+      case 68: // andExp
+      case 69: // compareExp
+      case 70: // dotDotExp
+      case 71: // addSubExp
+      case 72: // divMulModExp
+      case 73: // notHashUnExp
+      case 74: // powExp
+      case 75: // baseExp
+      case 76: // prefixexp
+      case 77: // functioncall
+      case 78: // args
+      case 79: // function
+      case 80: // funcbody
+      case 81: // parlist
+      case 82: // tableconstructor
+      case 83: // fieldlist
+      case 84: // field
+      case 85: // fieldsep
         value.copy< Node > (other.value);
         break;
 
@@ -1125,21 +1133,25 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // addSubExp
-      case 68: // divMulExp
-      case 69: // baseExp
-      case 70: // prefixexp
-      case 71: // functioncall
-      case 72: // args
-      case 73: // function
-      case 74: // funcbody
-      case 75: // parlist
-      case 76: // tableconstructor
-      case 77: // fieldlist
-      case 78: // field
-      case 79: // fieldsep
-      case 80: // binop
-      case 81: // unop
+      case 67: // orExp
+      case 68: // andExp
+      case 69: // compareExp
+      case 70: // dotDotExp
+      case 71: // addSubExp
+      case 72: // divMulModExp
+      case 73: // notHashUnExp
+      case 74: // powExp
+      case 75: // baseExp
+      case 76: // prefixexp
+      case 77: // functioncall
+      case 78: // args
+      case 79: // function
+      case 80: // funcbody
+      case 81: // parlist
+      case 82: // tableconstructor
+      case 83: // fieldlist
+      case 84: // field
+      case 85: // fieldsep
         value.copy< Node > (v);
         break;
 
@@ -1260,21 +1272,25 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // addSubExp
-      case 68: // divMulExp
-      case 69: // baseExp
-      case 70: // prefixexp
-      case 71: // functioncall
-      case 72: // args
-      case 73: // function
-      case 74: // funcbody
-      case 75: // parlist
-      case 76: // tableconstructor
-      case 77: // fieldlist
-      case 78: // field
-      case 79: // fieldsep
-      case 80: // binop
-      case 81: // unop
+      case 67: // orExp
+      case 68: // andExp
+      case 69: // compareExp
+      case 70: // dotDotExp
+      case 71: // addSubExp
+      case 72: // divMulModExp
+      case 73: // notHashUnExp
+      case 74: // powExp
+      case 75: // baseExp
+      case 76: // prefixexp
+      case 77: // functioncall
+      case 78: // args
+      case 79: // function
+      case 80: // funcbody
+      case 81: // parlist
+      case 82: // tableconstructor
+      case 83: // fieldlist
+      case 84: // field
+      case 85: // fieldsep
         value.template destroy< Node > ();
         break;
 
@@ -1366,21 +1382,25 @@ namespace yy {
       case 64: // namelist
       case 65: // explist
       case 66: // exp
-      case 67: // addSubExp
-      case 68: // divMulExp
-      case 69: // baseExp
-      case 70: // prefixexp
-      case 71: // functioncall
-      case 72: // args
-      case 73: // function
-      case 74: // funcbody
-      case 75: // parlist
-      case 76: // tableconstructor
-      case 77: // fieldlist
-      case 78: // field
-      case 79: // fieldsep
-      case 80: // binop
-      case 81: // unop
+      case 67: // orExp
+      case 68: // andExp
+      case 69: // compareExp
+      case 70: // dotDotExp
+      case 71: // addSubExp
+      case 72: // divMulModExp
+      case 73: // notHashUnExp
+      case 74: // powExp
+      case 75: // baseExp
+      case 76: // prefixexp
+      case 77: // functioncall
+      case 78: // args
+      case 79: // function
+      case 80: // funcbody
+      case 81: // parlist
+      case 82: // tableconstructor
+      case 83: // fieldlist
+      case 84: // field
+      case 85: // fieldsep
         value.move< Node > (s.value);
         break;
 
@@ -1817,7 +1837,7 @@ namespace yy {
 
 
 } // yy
-#line 1821 "binary.tab.hh" // lalr1.cc:377
+#line 1841 "binary.tab.hh" // lalr1.cc:377
 
 
 

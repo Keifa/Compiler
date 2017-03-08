@@ -90,13 +90,19 @@
 %type <Node> fieldlist
 %type <Node> field
 %type <Node> fieldsep
-%type <Node> binop
-%type <Node> unop
+//%type <Node> binop
+//%type <Node> unop
 
 %type <Node> elseifLoop
 %type <Node> baseExp
-%type <Node> divMulExp
+%type <Node> powExp
+%type <Node> notHashUnExp
+%type <Node> divMulModExp
 %type <Node> addSubExp
+%type <Node> dotDotExp
+%type <Node> compareExp
+%type <Node> andExp
+%type <Node> orExp
 
 %%
 
@@ -269,46 +275,133 @@ explist
   ;
 
 exp
-  : addSubExp { $$ = $1; }
-  | exp binop exp {
+  : orExp { $$ = $1; }
+  /*| exp binop exp {
       $$ = Node("exp", "");
       $$.children.push_back($1);
       $$.children.push_back($2);
-      $$.children.push_back($3);
-    }
-  | unop exp {
+      $$.children.push_back($3); }*/
+  /*| unop exp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2); }*/
+  ;
+
+orExp
+  : andExp { $$ = $1; }
+  | orExp OR andExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+andExp
+  : compareExp { $$ = $1; }
+  | andExp AND compareExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+compareExp
+  : dotDotExp { $$ = $1; }
+  | compareExp LESS dotDotExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | compareExp BIGGER dotDotExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | compareExp LESSEQUAL dotDotExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | compareExp BIGGEREQUAL dotDotExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | compareExp NOTEQUAL dotDotExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | compareExp EQUAL dotDotExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+dotDotExp
+  : addSubExp { $$ = $1; }
+  | dotDotExp DOTDOT addSubExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+addSubExp
+  : divMulModExp { $$ = $1; }
+  | addSubExp PLUS divMulModExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | addSubExp MINUS divMulModExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+divMulModExp
+  : notHashUnExp { $$ = $1; }
+  | divMulModExp SLASH notHashUnExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | divMulModExp STAR notHashUnExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | divMulModExp PERCENT notHashUnExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  ;
+
+notHashUnExp
+  : powExp { $$ = $1; }
+  | notHashUnExp NOT powExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | notHashUnExp HASHTAG powExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
+  | MINUS powExp {
       $$ = Node("exp", "");
       $$.children.push_back($1);
       $$.children.push_back($2); }
   ;
 
-addSubExp
-  : divMulExp { $$ = $1; }
-  | addSubExp PLUS divMulExp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3); }
-  | addSubExp MINUS divMulExp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3); }
-  ;
-
-divMulExp
+powExp
   : baseExp { $$ = $1; }
-  | divMulExp SLASH baseExp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3); }
-  | divMulExp STAR baseExp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3); }
-  | divMulExp PERCENT baseExp {
+  | powExp CARET baseExp {
       $$ = Node("exp", "");
       $$.children.push_back($1);
       $$.children.push_back($2);
@@ -321,7 +414,8 @@ baseExp
   | TRUE { $$ = Node("exp", $1); }
   | NUMBER { $$ = Node("exp", $1); }
   | STR {
-      $1 = $1.substr(1, $1.length() - 2);
+      $1.insert(0, "\\");
+      $1.insert($1.length() - 1, "\\");
       $$ = Node("exp", $1); }
   | DOTDOTDOT { $$ = Node("exp", $1); }
   | function { $$ = $1; }
@@ -447,6 +541,7 @@ fieldsep
   | SEMICOLON { $$ = Node("fieldsep", $1); }
   ;
 
+/*
 binop
   : CARET { $$ = Node("binop", $1); }
   | DOTDOT { $$ = Node("binop", $1); }
@@ -465,3 +560,4 @@ unop
   | NOT { $$ = Node("unop", $1); }
   | HASHTAG { $$ = Node("unop", $1); }
   ;
+*/
