@@ -55,30 +55,24 @@ public:
   }
 
   void dotFile(string& nodeStr, string& conStr) {
-    nodeStr += "\t" + name + " [label=\"{";
-    int instCount = 0;
+    nodeStr += name + " [label=\"";
 
-    for(auto i : instructions) {
-      nodeStr += "<f" + to_string(instCount++) + "> ";
-      nodeStr += i.toStr();
-      nodeStr += "|";
-    }
+    for(auto i : instructions)
+      nodeStr += i.toStr() + "\\n";
 
-    if(instCount > 0) {
-      nodeStr.pop_back();
-      nodeStr += "}\"];\n";
-    }
-    else {
-      nodeStr = nodeStr.substr(0, nodeStr.size() - ("\t" + name + " [label=\"").size());
-    }
+    nodeStr += "\",shape=\"rect\"];\n";
 
     if(tExit != NULL) {
-      conStr += "\t" + name + " -> " + tExit->name + " [color=\"green\"];\n";
+      string temp = name + " -> " + tExit->name + " [label=\"true\",color=\"green\"];\n";
+      if(conStr.find(temp) == string::npos)
+        conStr += temp;
       tExit->dotFile(nodeStr, conStr);
     }
 
     if(fExit != NULL) {
-      conStr += "\t" + name + " -> " + fExit->name + " [color=\"red\"];\n";
+      string temp = name + " -> " + fExit->name + " [label=\"false\",color=\"red\"];\n";
+      if(conStr.find(temp) == string::npos)
+        conStr += temp;
       fExit->dotFile(nodeStr, conStr);
     }
   }
@@ -275,7 +269,7 @@ void generateDotFile(BBlock* start) {
   string dotNodeStr = "", dotNodeConStr = "";
   start->dotFile(dotNodeStr, dotNodeConStr);
 
-  dotNodeStr.insert(0, "digraph structs {\n\tnode [shape=record];\n");
+  dotNodeStr.insert(0, "digraph structs {\n");
   dotNodeConStr += "}";
 
   cout << dotNodeStr << dotNodeConStr << endl;

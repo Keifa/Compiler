@@ -80,19 +80,10 @@ int main(int argc, char *argv[]) {
         new Constant(3)))
   });
 
-  Statement *test3 = new Seq({
-    new Assignment("x", new Add(new Variable("x"), new Constant(1))),
-
-    new If((new Equality(new Variable("x"), new Constant(10))),
-    new Assignment("y", new Add(new Variable("x"), new Constant(1))),
-    new Assignment("y", new Mult(new Variable("x"),new Constant(2)))),
-
-    new Assignment("x", new Add(new Variable("x"), new Constant(1)))
-});
 
   BBlock* start = new BBlock();
   BBlock* tempStart = start;
-  test3->convert(&tempStart);
+  test2->convert(&tempStart);
   dumpCFG(start);
   generateDotFile(start);
 
