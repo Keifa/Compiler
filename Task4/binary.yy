@@ -308,6 +308,11 @@ divMulExp
       $$.children.push_back($1);
       $$.children.push_back($2);
       $$.children.push_back($3); }
+  | divMulExp PERCENT baseExp {
+      $$ = Node("exp", "");
+      $$.children.push_back($1);
+      $$.children.push_back($2);
+      $$.children.push_back($3); }
   ;
 
 baseExp
@@ -444,7 +449,6 @@ fieldsep
 
 binop
   : CARET { $$ = Node("binop", $1); }
-  | PERCENT { $$ = Node("binop", $1); }
   | DOTDOT { $$ = Node("binop", $1); }
   | LESS { $$ = Node("binop", $1); }
   | LESSEQUAL { $$ = Node("binop", $1); }
