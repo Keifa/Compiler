@@ -7,6 +7,7 @@
 #include <list>
 #include <fstream>
 #include <sstream>
+#include "labTrees.h"
 
 static int id = 0;
 
@@ -48,6 +49,48 @@ public:
       f.close();
     }
   }
+
+  void convertToThreeAd(Statement* state) {
+    for(auto i = children.begin(); i != children.end(); i++) {
+      std::cout << (*i).tag << " " << (*i).value << std::endl;
+      (*i).convertToThreeAd(state);
+    }
+  }
+  /*
+  void dumpCFG(BBlock* start) {
+    set<BBlock*> done, todo;
+    todo.insert(start);
+    while(todo.size() > 0) {
+      // Pop an arbitrary element from todo set
+      auto first = todo.begin();
+      BBlock *next = *first;
+      todo.erase(first);
+      next->dump();
+      done.insert(next);
+      if(next->tExit != NULL && done.find(next->tExit) == done.end())
+        todo.insert(next->tExit);
+      if(next->fExit != NULL && done.find(next->fExit) == done.end())
+        todo.insert(next->fExit);
+    }
+  }
+
+  void generateDotFile(BBlock* start) {
+    string dotNodeStr = "", dotNodeConStr = "";
+    start->dotFile(dotNodeStr, dotNodeConStr);
+
+    dotNodeStr.insert(0, "digraph structs {\n");
+    dotNodeConStr += "}";
+
+    cout << dotNodeStr << dotNodeConStr << endl;
+    ofstream file("cfg.dot", ios::trunc);
+    if(file.is_open()) {
+      file << dotNodeStr;
+      file << dotNodeConStr;
+      file.close();
+    }
+    else { cout << "Unable to open file\n"; }
+  }
+  */
 };
 
 #endif

@@ -771,7 +771,7 @@ namespace yy {
   case 10:
 #line 141 "binary.yy" // lalr1.cc:859
     {
-      yylhs.value.as< Node > () = Node("stat", "");
+      yylhs.value.as< Node > () = Node("stat", "assignment");
       yylhs.value.as< Node > ().children.push_back(yystack_[2].value.as< Node > ());
       yylhs.value.as< Node > ().children.push_back(yystack_[0].value.as< Node > ()); }
 #line 778 "binary.tab.cc" // lalr1.cc:859

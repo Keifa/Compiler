@@ -5,6 +5,10 @@
    You are free to use this code as a base for your second assignment after
    the lab sessions (it is not required that you do so).
 */
+
+#ifndef LABTREES_CC
+#define LABTREES_CC
+
 #include <list>
 #include <set>
 #include <initializer_list>
@@ -34,9 +38,8 @@ public:
 };
 
 /* Basic Blocks */
+static int nCounter = 0;
 class BBlock {
-private:
-  static int nCounter;
 public:
   list<ThreeAd> instructions;
   BBlock *tExit, *fExit;
@@ -77,13 +80,11 @@ public:
     }
   }
 };
-int BBlock::nCounter = 0;
-
+//int BBlock::nCounter = 0;
 
 /******************** Expressions ********************/
+static int eCounter = 0;
 class Expression {
-private:
-  static int counter;
 public:
   string name;
   Expression() : name("") {}
@@ -92,13 +93,13 @@ public:
   virtual string makeNames() {
     // Lecture 8 / slide 11.
     // Virtual (but not pure) to allow overriding in the leaves.
-    name = "_t" + to_string(counter++);
+    name = "_t" + to_string(eCounter++);
     return name;
   }
 
   virtual string convert(BBlock*) = 0; // Lecture 8 / slide 12.
 };
-int Expression::counter = 0;
+//int Expression::eCounter = 0;
 
 class Variable : public Expression {
 public:
@@ -110,7 +111,6 @@ public:
 
   string convert(BBlock* out) {
     // Write three address instructions to output
-    //cout << "Variable\n";
     return name;
   }
 };
@@ -126,7 +126,6 @@ public:
 
   string convert(BBlock* out) {
     // Write three address instructions to output
-    //cout << "Constant\n";
     return name;
   }
 };
@@ -139,7 +138,6 @@ public:
     lhs(lhs), rhs(rhs) {}
 
   string convert(BBlock* out) {
-    //cout << "Add\n";
     out->instructions.push_back(ThreeAd(makeNames(), '+', lhs->convert(out), rhs->convert(out)));
     return name;
   }
@@ -153,7 +151,6 @@ public:
     lhs(lhs), rhs(rhs) {}
 
   string convert(BBlock* out) {
-    //cout << "Mult\n";
     out->instructions.push_back(ThreeAd(makeNames(), '*', lhs->convert(out), rhs->convert(out)));
     return name;
   }
@@ -167,7 +164,6 @@ public:
   Equality(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
 
   string convert(BBlock* out) {
-    //cout << "Equality\n";
     out->instructions.push_back(ThreeAd(makeNames(), 'e', lhs->convert(out), rhs->convert(out)));
     return name;
   }
@@ -192,7 +188,6 @@ public:
 
   void convert(BBlock **out) {
     // Write three address instructions to output
-    //cout << "Assignment " << lhs->name << endl;
     string temp = rhs->convert(*out);
     (*out)->instructions.push_back(ThreeAd(lhs->convert(*out), '=', temp, temp));
   }
@@ -217,13 +212,11 @@ public:
     tState->convert(&trueBlock);
     trueBlock->tExit = contBlock;
 
-
     // False
     BBlock* falseBlock = new BBlock();
     (*out)->fExit = falseBlock;
     fState->convert(&falseBlock);
     falseBlock->tExit = contBlock;
-
 
     (*out) = contBlock;
   }
@@ -232,6 +225,7 @@ public:
 class Seq : public Statement {
 public:
   list<Statement*> l;
+  Seq() {}
   Seq(initializer_list<Statement*> args) {
     for(auto i : args)
       l.push_back(i);
@@ -248,20 +242,21 @@ public:
  * Iterate over each basic block that can be reached from the entry point
  * exactly once, so that we can dump out the entire graph.
  */
-void dumpCFG(BBlock *start) {
-  set<BBlock *> done, todo;
+/*
+void dumpCFG(BBlock* start) {
+  set<BBlock*> done, todo;
   todo.insert(start);
   while(todo.size() > 0) {
-    // Pop an arbitrary element from todo set
-    auto first = todo.begin();
-    BBlock *next = *first;
-    todo.erase(first);
-    next->dump();
-    done.insert(next);
-    if(next->tExit != NULL && done.find(next->tExit) == done.end())
-      todo.insert(next->tExit);
-    if(next->fExit != NULL && done.find(next->fExit) == done.end())
-      todo.insert(next->fExit);
+   // Pop an arbitrary element from todo set
+   auto first = todo.begin();
+   BBlock *next = *first;
+   todo.erase(first);
+   next->dump();
+   done.insert(next);
+   if(next->tExit != NULL && done.find(next->tExit) == done.end())
+     todo.insert(next->tExit);
+   if(next->fExit != NULL && done.find(next->fExit) == done.end())
+     todo.insert(next->fExit);
   }
 }
 
@@ -273,11 +268,14 @@ void generateDotFile(BBlock* start) {
   dotNodeConStr += "}";
 
   cout << dotNodeStr << dotNodeConStr << endl;
-  ofstream file("tree.dot", ios::trunc);
+  ofstream file("cfg.dot", ios::trunc);
   if(file.is_open()) {
-    file << dotNodeStr;
-    file << dotNodeConStr;
-    file.close();
+   file << dotNodeStr;
+   file << dotNodeConStr;
+   file.close();
   }
   else { cout << "Unable to open file\n"; }
 }
+*/
+
+#endif

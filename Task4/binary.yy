@@ -139,7 +139,7 @@ block
 
 stat
   : varlist EQUAL explist {
-      $$ = Node("stat", "");
+      $$ = Node("stat", "assignment");
       $$.children.push_back($1);
       $$.children.push_back($3); }
   | functioncall { $$ = $1; }
