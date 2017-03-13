@@ -90,8 +90,6 @@
 %type <Node> fieldlist
 %type <Node> field
 %type <Node> fieldsep
-//%type <Node> binop
-//%type <Node> unop
 
 %type <Node> elseifLoop
 %type <Node> baseExp
@@ -444,7 +442,8 @@ args
       $$ = Node("args", "");
       $$.children.push_back($1); }
   | STR {
-      $1 = $1.substr(1, $1.length() - 2);
+      $1.insert(0, "\\");
+      $1.insert($1.length() - 1, "\\");
       $$ = Node("args", $1); }
   ;
 

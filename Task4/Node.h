@@ -54,16 +54,37 @@ public:
     std::string tempTag = "";
     for(auto i = children.begin(); i != children.end(); i++) {
       tempTag = (*i).tag.substr((*i).tag.find(" ") + 1, (*i).tag.length() - 1);
-      //std::cout << tempTag << " " << (*i).value << std::endl;
+      std::cout << tempTag << " " << (*i).value << std::endl;
 
       if(tempTag.find("stat", 0, 4) != string::npos) {
         if((*i).value == "assignment") {
           ((Seq*)state)->l.push_back(handleAssignment((*i)));
         }
       }
+      else if(tempTag == "functioncall") {
+        ((Seq*)state)->l.push_back(handleFunctionCall((*i)));
+      }
 
       (*i).convertToThreeAd(state);
     }
+  }
+
+  Statement* handleFunctionCall(Node& n) {
+    auto c = n.children.front();
+    auto args = n.children.back();
+    if(c.value == "") {
+
+    }
+    else if(c.value == "print") {
+      if(args.value == "")
+        return new Output(handleArgs(args));
+      else
+        return new Output(new Constant(args.value));
+    }
+  }
+
+  Expression* handleArgs(Node& n) {
+    return handleExptression(n.children.front().children.front());
   }
 
   Expression* handleExptression(Node& n) {
@@ -71,30 +92,32 @@ public:
     tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
 
     if(tempTag == "exp") {
-      if(n.value != "") {
-        std::cout << "constant ";
-        return new Constant(std::stoi(n.value));
-      }
+      if(n.value != "")
+        return new Constant(n.value);
       else {
         auto binop = n.children.begin();
         binop++;
+        std::string op = (*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
 
-        if((*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1) == "+") {
+        if(op == "+") {
           return new Add(
             handleExptression(n.children.front()), handleExptression(n.children.back()));
         }
-        else if((*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1) == "-") {
+        else if(op == "-") {
           return new Sub(
             handleExptression(n.children.front()), handleExptression(n.children.back()));
         }
-        else if((*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1) == "*") {
+        else if(op == "*") {
           return new Mult(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == "/") {
+          return new Div(
             handleExptression(n.children.front()), handleExptression(n.children.back()));
         }
       }
     }
     else if(tempTag == "var") {
-      std::cout << "var ";
       return new Variable(n.value);
     }
   }

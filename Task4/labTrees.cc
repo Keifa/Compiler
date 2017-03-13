@@ -119,6 +119,8 @@ class Constant : public Expression {
 public:
   Constant(int nr) :
     Expression(to_string(nr)) {}
+  Constant(string str) :
+    Expression(str) {}
 
   string makeNames() {
     return name;
@@ -165,6 +167,19 @@ public:
 
   string convert(BBlock* out) {
     out->instructions.push_back(ThreeAd(makeNames(), '*', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class Div : public Expression {
+public:
+  Expression *lhs, *rhs;
+
+  Div(Expression* lhs, Expression* rhs) :
+    lhs(lhs), rhs(rhs) {}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), '/', lhs->convert(out), rhs->convert(out)));
     return name;
   }
 };
@@ -234,6 +249,18 @@ public:
     falseBlock->tExit = contBlock;
 
     (*out) = contBlock;
+  }
+};
+
+class Output : public Statement {
+public:
+  Expression* exp;
+  Output() {}
+  Output(Expression* exp) : exp(exp) {}
+
+  void convert(BBlock **out) {
+    string temp = exp->convert(*out);
+    (*out)->instructions.push_back(ThreeAd("output", 'o', temp, temp));
   }
 };
 
