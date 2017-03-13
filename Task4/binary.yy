@@ -276,15 +276,6 @@ explist
 
 exp
   : orExp { $$ = $1; }
-  /*| exp binop exp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2);
-      $$.children.push_back($3); }*/
-  /*| unop exp {
-      $$ = Node("exp", "");
-      $$.children.push_back($1);
-      $$.children.push_back($2); }*/
   ;
 
 orExp

@@ -51,46 +51,69 @@ public:
   }
 
   void convertToThreeAd(Statement* state) {
+    std::string tempTag = "";
     for(auto i = children.begin(); i != children.end(); i++) {
-      std::cout << (*i).tag << " " << (*i).value << std::endl;
+      tempTag = (*i).tag.substr((*i).tag.find(" ") + 1, (*i).tag.length() - 1);
+      //std::cout << tempTag << " " << (*i).value << std::endl;
+
+      if(tempTag.find("stat", 0, 4) != string::npos) {
+        if((*i).value == "assignment") {
+          ((Seq*)state)->l.push_back(handleAssignment((*i)));
+        }
+      }
+
       (*i).convertToThreeAd(state);
     }
   }
-  /*
-  void dumpCFG(BBlock* start) {
-    set<BBlock*> done, todo;
-    todo.insert(start);
-    while(todo.size() > 0) {
-      // Pop an arbitrary element from todo set
-      auto first = todo.begin();
-      BBlock *next = *first;
-      todo.erase(first);
-      next->dump();
-      done.insert(next);
-      if(next->tExit != NULL && done.find(next->tExit) == done.end())
-        todo.insert(next->tExit);
-      if(next->fExit != NULL && done.find(next->fExit) == done.end())
-        todo.insert(next->fExit);
+
+  Expression* handleExptression(Node& n) {
+    std::string tempTag = "";
+    tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
+
+    if(tempTag == "exp") {
+      if(n.value != "") {
+        std::cout << "constant ";
+        return new Constant(std::stoi(n.value));
+      }
+      else {
+        auto binop = n.children.begin();
+        binop++;
+
+        if((*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1) == "+") {
+          return new Add(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if((*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1) == "-") {
+          return new Sub(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if((*binop).tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1) == "*") {
+          return new Mult(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+      }
+    }
+    else if(tempTag == "var") {
+      std::cout << "var ";
+      return new Variable(n.value);
     }
   }
 
-  void generateDotFile(BBlock* start) {
-    string dotNodeStr = "", dotNodeConStr = "";
-    start->dotFile(dotNodeStr, dotNodeConStr);
+  Seq* handleAssignment(Node& n) {
+    Seq* temp = new Seq();
+    auto varList = n.children.front();
+    auto expList = n.children.back();
+    auto vListIt = varList.children.begin();
+    auto eListIt = expList.children.begin();
 
-    dotNodeStr.insert(0, "digraph structs {\n");
-    dotNodeConStr += "}";
-
-    cout << dotNodeStr << dotNodeConStr << endl;
-    ofstream file("cfg.dot", ios::trunc);
-    if(file.is_open()) {
-      file << dotNodeStr;
-      file << dotNodeConStr;
-      file.close();
+    if(varList.children.size() == 1) {
+      temp->l.push_back(new Assignment((*vListIt).value, handleExptression((*eListIt))));
     }
-    else { cout << "Unable to open file\n"; }
+    else {
+
+    }
+    return temp;
   }
-  */
 };
 
 #endif

@@ -143,6 +143,19 @@ public:
   }
 };
 
+class Sub : public Expression {
+public:
+  Expression *lhs, *rhs;
+
+  Sub(Expression* lhs, Expression* rhs) :
+    lhs(lhs), rhs(rhs) {}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), '-', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
 class Mult : public Expression {
 public:
   Expression *lhs, *rhs;
@@ -185,6 +198,8 @@ public:
 
   Assignment(string lhs, Expression *rhs) :
     lhs(new Variable(lhs)), rhs(rhs) {}
+  Assignment(Variable* lhs, Expression* rhs) :
+    lhs(lhs), rhs(rhs) {}
 
   void convert(BBlock **out) {
     // Write three address instructions to output

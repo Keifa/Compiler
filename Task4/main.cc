@@ -52,9 +52,13 @@ int main(int argc, char *argv[]) {
   Statement* state = new Seq();
 
   if(!parser.parse()) {
+    std::cout << "ParseTree:\n";
     root.dump();
     root.createDotFile();
     root.convertToThreeAd(state);
+    state->convert(&tempStart);
+    std::cout << "\nCFG:\n";
+    dumpCFG(start);
   }
   return 0;
 }
