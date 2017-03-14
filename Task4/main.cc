@@ -27,14 +27,14 @@ void dumpCFG(BBlock* start) {
   }
 }
 
-void generateDotFile(BBlock* start) {
+void generateCFGDotFile(BBlock* start) {
   string dotNodeStr = "", dotNodeConStr = "";
   start->dotFile(dotNodeStr, dotNodeConStr);
 
   dotNodeStr.insert(0, "digraph structs {\n");
   dotNodeConStr += "}";
 
-  cout << dotNodeStr << dotNodeConStr << endl;
+  //cout << dotNodeStr << dotNodeConStr << endl;
   ofstream file("cfg.dot", ios::trunc);
   if(file.is_open()) {
    file << dotNodeStr;
@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
     state->convert(&tempStart);
     std::cout << "\nCFG:\n";
     dumpCFG(start);
+    generateCFGDotFile(start);
   }
   return 0;
 }

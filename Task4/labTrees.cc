@@ -184,6 +184,19 @@ public:
   }
 };
 
+class Mod : public Expression {
+public:
+  Expression *lhs;
+  Expression *rhs;
+
+  Mod(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), '%', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
 class Equality : public Expression {
 public:
   Expression *lhs;
@@ -193,6 +206,84 @@ public:
 
   string convert(BBlock* out) {
     out->instructions.push_back(ThreeAd(makeNames(), 'e', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class NotEqual : public Expression {
+public:
+  Expression *lhs;
+  Expression *rhs;
+
+  NotEqual(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), '!', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class Less : public Expression {
+public:
+  Expression *lhs;
+  Expression *rhs;
+
+  Less(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), '<', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class Greater : public Expression {
+public:
+  Expression *lhs;
+  Expression *rhs;
+
+  Greater(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), '>', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class LessOrEqual : public Expression {
+public:
+  Expression *lhs;
+  Expression *rhs;
+
+  LessOrEqual(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), 'l', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class GreaterOrEqual : public Expression {
+public:
+  Expression *lhs;
+  Expression *rhs;
+
+  GreaterOrEqual(Expression* lhs, Expression* rhs) : lhs(lhs), rhs(rhs){}
+
+  string convert(BBlock* out) {
+    out->instructions.push_back(ThreeAd(makeNames(), 'g', lhs->convert(out), rhs->convert(out)));
+    return name;
+  }
+};
+
+class Input : public Expression {
+public:
+  Expression* args;
+
+  Input(Expression* args) : args(args) {}
+
+  string convert(BBlock* out) {
+    string temp = args->convert(out);
+    out->instructions.push_back(ThreeAd(makeNames(), 'i', temp, temp));
     return name;
   }
 };
@@ -223,35 +314,6 @@ public:
   }
 };
 
-class If : public Statement {
-public:
-  Expression *expr;
-  Statement *tState, *fState;
-
-  If(Expression* expr, Statement* tState, Statement* fState) :
-    expr(expr), tState(tState), fState(fState) {}
-
-  void convert(BBlock **out) {
-    expr->convert(*out);
-
-    BBlock* contBlock = new BBlock();
-
-    // True
-    BBlock* trueBlock = new BBlock();
-    (*out)->tExit = trueBlock;
-    tState->convert(&trueBlock);
-    trueBlock->tExit = contBlock;
-
-    // False
-    BBlock* falseBlock = new BBlock();
-    (*out)->fExit = falseBlock;
-    fState->convert(&falseBlock);
-    falseBlock->tExit = contBlock;
-
-    (*out) = contBlock;
-  }
-};
-
 class Output : public Statement {
 public:
   Expression* exp;
@@ -277,6 +339,47 @@ public:
     // Write three address instructions to output
     for(auto i : l)
       i->convert(out);
+  }
+};
+
+class If : public Statement {
+public:
+  Expression *expr;
+  Statement *tState, *fState;
+
+  If(Expression* expr, Statement* tState, Statement* fState) :
+    expr(expr), tState(tState), fState(fState) {}
+  If(Expression* expr, Statement* tState) :
+    expr(expr), tState(tState), fState(new Seq()) {}
+
+  void convert(BBlock **out) {
+    expr->convert(*out);
+
+    BBlock* contBlock = new BBlock();
+
+    // True
+    BBlock* trueBlock = new BBlock();
+    (*out)->tExit = trueBlock;
+    tState->convert(&trueBlock);
+    trueBlock->tExit = contBlock;
+
+    // False
+    BBlock* falseBlock = new BBlock();
+    (*out)->fExit = falseBlock;
+    fState->convert(&falseBlock);
+    falseBlock->tExit = contBlock;
+
+    (*out) = contBlock;
+  }
+};
+
+class For : public Statement {
+public:
+
+  For() {}
+
+  void convert(BBlock ** out) {
+
   }
 };
 

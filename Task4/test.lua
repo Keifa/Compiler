@@ -1,6 +1,5 @@
-x = 7
-y = (10+x)*2
-z = y - x
-print(x)
-print(y)
-print(z)
+if n%i==0 then
+  io.write(i)
+  io.write(" is a factor of ")
+  print(n)
+end

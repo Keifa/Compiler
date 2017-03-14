@@ -321,7 +321,7 @@ compareExp
       $$.children.push_back($1);
       $$.children.push_back($2);
       $$.children.push_back($3); }
-  | compareExp EQUAL dotDotExp {
+  | compareExp EQUALEQUAL dotDotExp {
       $$ = Node("exp", "");
       $$.children.push_back($1);
       $$.children.push_back($2);

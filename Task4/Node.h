@@ -51,29 +51,64 @@ public:
   }
 
   void convertToThreeAd(Statement* state) {
-    std::string tempTag = "";
     for(auto i = children.begin(); i != children.end(); i++) {
-      tempTag = (*i).tag.substr((*i).tag.find(" ") + 1, (*i).tag.length() - 1);
-      std::cout << tempTag << " " << (*i).value << std::endl;
-
-      if(tempTag.find("stat", 0, 4) != string::npos) {
-        if((*i).value == "assignment") {
-          ((Seq*)state)->l.push_back(handleAssignment((*i)));
-        }
-      }
-      else if(tempTag == "functioncall") {
-        ((Seq*)state)->l.push_back(handleFunctionCall((*i)));
-      }
-
-      (*i).convertToThreeAd(state);
+      ((Seq*)state)->l.push_back(handleStatement((*i)));
     }
   }
 
-  Statement* handleFunctionCall(Node& n) {
+  Statement* handleStatement(Node& n) {
+    std::cout << "handleStatement\n";
+    std::string tempTag = "";
+    tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
+
+    if(tempTag.find("stat", 0, 4) != string::npos) {
+      if(n.value == "assignment")
+        return handleAssignment(n);
+      else if(n.value == "if")
+        return handleIf(n);
+    }
+    else if(tempTag == "functioncall")
+      return handleStateFunctionCall(n);
+  }
+
+  Statement* handleIf(Node& n) {
+    std::cout << "handleIf" << n.children.size() << std::endl;
+    auto expr = n.children.front();
+    auto block1 = n.children.begin();
+    block1++;
+    if(n.children.size() == 2) {
+      return new If(handleExptression(expr), handleBlock((*block1)), new Seq());
+    }
+    else if(n.children.size() == 3) {
+      
+    }
+    else if(n.children.size() == 4) {
+
+    }
+  }
+
+  Statement* handleBlock(Node& n) {
+    std::cout << "handleBlock\n";
+    Seq* temp = new Seq();
+    auto chunk = n.children.front();
+    for(auto i = chunk.children.begin(); i != chunk.children.end(); i++) {
+      temp->l.push_back(handleStatement((*i)));
+    }
+    return temp;
+  }
+
+  Statement* handleStateFunctionCall(Node& n) {
+    std::cout << "handleStateFunctionCall\n";
     auto c = n.children.front();
     auto args = n.children.back();
     if(c.value == "") {
-
+      auto temp = c.children.begin();
+      if((*temp).value == "io") {
+        temp++;
+        if((*temp).value == "write") {
+          return new Output(handleArgs(args));
+        }
+      }
     }
     else if(c.value == "print") {
       if(args.value == "")
@@ -81,13 +116,36 @@ public:
       else
         return new Output(new Constant(args.value));
     }
+    std::cout << "nullptr\n";
+    return nullptr;
+  }
+
+  Expression* handleExpFunctionCall(Node& n) {
+    std::cout << "handleExpFunctionCall\n";
+    auto c = n.children.front();
+    auto args = n.children.back();
+    if(c.value == "") {
+      auto temp = c.children.begin();
+      if((*temp).value == "io") {
+        temp++;
+        if((*temp).value == "read") {
+          return new Input(handleArgs(args));
+        }
+      }
+    }
+    return nullptr;
   }
 
   Expression* handleArgs(Node& n) {
-    return handleExptression(n.children.front().children.front());
+    std::cout << "handleArgs\n";
+    if(n.children.size() != 0)
+      return handleExptression(n.children.front().children.front());
+    else
+      return new Constant("");
   }
 
   Expression* handleExptression(Node& n) {
+    std::cout << "handleExpression\n";
     std::string tempTag = "";
     tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
 
@@ -115,14 +173,46 @@ public:
           return new Div(
             handleExptression(n.children.front()), handleExptression(n.children.back()));
         }
+        else if(op == "%") {
+          return new Mod(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == "==") {
+          return new Equality(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == "~=") {
+          return new NotEqual(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == "<") {
+          return new Less(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == ">") {
+          return new Greater(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == "<=") {
+          return new LessOrEqual(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
+        else if(op == ">=") {
+          return new GreaterOrEqual(
+            handleExptression(n.children.front()), handleExptression(n.children.back()));
+        }
       }
     }
     else if(tempTag == "var") {
       return new Variable(n.value);
     }
+    else if(tempTag == "functioncall") {
+      return handleExpFunctionCall(n);
+    }
   }
 
   Seq* handleAssignment(Node& n) {
+    std::cout << "handleAssignment\n";
     Seq* temp = new Seq();
     auto varList = n.children.front();
     auto expList = n.children.back();
@@ -130,7 +220,7 @@ public:
     auto eListIt = expList.children.begin();
 
     if(varList.children.size() == 1) {
-      temp->l.push_back(new Assignment((*vListIt).value, handleExptression((*eListIt))));
+        temp->l.push_back(new Assignment((*vListIt).value, handleExptression((*eListIt))));
     }
     else {
 
