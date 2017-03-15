@@ -1,11 +1,17 @@
 digraph structs {
-blk0 [label="_t0 \<\- n % i\n_t1 \<\- _t0 e 0\n",shape="rect"];
-blk2 [label="output \<\- i o i\noutput \<\- \" is a factor of \" o \" is a factor of \"\noutput \<\- n o n\n",shape="rect"];
+blk0 [label="output \<\- \"enter a number:\" o \"enter a number:\"\n_t0 \<\- \"*number\" i \"*number\"\nn \<\- _t0 = _t0\ni \<\- 2 = 2\n_t1 \<\- i l n\n",shape="rect"];
+blk2 [label="_t2 \<\- n % i\n_t3 \<\- _t2 e 0\n",shape="rect"];
+blk4 [label="output \<\- i o i\noutput \<\- \" is a factor of \" o \" is a factor of \"\noutput \<\- n o n\n",shape="rect"];
+blk3 [label="_t4 \<\- i + 1\n_t5 \<\- i l n\n",shape="rect"];
 blk1 [label="",shape="rect"];
-blk3 [label="",shape="rect"];
+blk3 [label="_t4 \<\- i + 1\n_t5 \<\- i l n\n",shape="rect"];
+blk1 [label="",shape="rect"];
 blk1 [label="",shape="rect"];
 blk0 -> blk2 [label="true",color="green"];
-blk2 -> blk1 [label="true",color="green"];
-blk0 -> blk3 [label="false",color="red"];
-blk3 -> blk1 [label="true",color="green"];
+blk2 -> blk4 [label="true",color="green"];
+blk4 -> blk3 [label="true",color="green"];
+blk3 -> blk3 [label="true",color="green"];
+blk3 -> blk1 [label="false",color="red"];
+blk2 -> blk3 [label="false",color="red"];
+blk0 -> blk1 [label="false",color="red"];
 }

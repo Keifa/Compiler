@@ -64,19 +64,23 @@ public:
       nodeStr += i.toStr() + "\\n";
 
     nodeStr += "\",shape=\"rect\"];\n";
+    //std::cout << nodeStr;
+
 
     if(tExit != NULL) {
       string temp = name + " -> " + tExit->name + " [label=\"true\",color=\"green\"];\n";
       if(conStr.find(temp) == string::npos)
         conStr += temp;
-      tExit->dotFile(nodeStr, conStr);
+      if(name != tExit->name)
+        tExit->dotFile(nodeStr, conStr);
     }
 
     if(fExit != NULL) {
       string temp = name + " -> " + fExit->name + " [label=\"false\",color=\"red\"];\n";
       if(conStr.find(temp) == string::npos)
         conStr += temp;
-      fExit->dotFile(nodeStr, conStr);
+      if(name != fExit->name)
+        fExit->dotFile(nodeStr, conStr);
     }
   }
 };
@@ -350,7 +354,7 @@ public:
   If(Expression* expr, Statement* tState, Statement* fState) :
     expr(expr), tState(tState), fState(fState) {}
   If(Expression* expr, Statement* tState) :
-    expr(expr), tState(tState), fState(new Seq()) {}
+    expr(expr), tState(tState) { fState = nullptr; }
 
   void convert(BBlock **out) {
     expr->convert(*out);
@@ -364,10 +368,15 @@ public:
     trueBlock->tExit = contBlock;
 
     // False
-    BBlock* falseBlock = new BBlock();
-    (*out)->fExit = falseBlock;
-    fState->convert(&falseBlock);
-    falseBlock->tExit = contBlock;
+    if(fState != nullptr) {
+      BBlock* falseBlock = new BBlock();
+      (*out)->fExit = falseBlock;
+      fState->convert(&falseBlock);
+      falseBlock->tExit = contBlock;
+    }
+    else {
+      (*out)->fExit = contBlock;
+    }
 
     (*out) = contBlock;
   }
@@ -375,11 +384,37 @@ public:
 
 class For : public Statement {
 public:
+  Assignment* a;
+  Expression* max, *inc;
+  Statement* state;
+  LessOrEqual* comp;
+  Add* add;
 
-  For() {}
+  For(Assignment* a, Expression* max, Expression* inc, Statement* state) :
+    a(a), max(max), inc(inc), state(state) {}
+  For(Assignment* a, Expression* max, Statement* state) :
+    a(a), max(max), state(state) { inc = new Constant(1); }
 
   void convert(BBlock ** out) {
+    LessOrEqual* comp = new LessOrEqual(a->lhs, max);
+    Add* add = new Add(a->lhs, inc);
+    a->convert(out);
+    max->convert(*out);
+    comp->convert(*out);
 
+    BBlock* contBlock = new BBlock();
+    BBlock* trueBlock = new BBlock();
+    (*out)->tExit = trueBlock;
+    (*out)->fExit = contBlock;
+
+    state->convert(&trueBlock);
+    add->convert(trueBlock);
+    comp->convert(trueBlock);
+
+    trueBlock->tExit = trueBlock;
+    trueBlock->fExit = contBlock;
+
+    (*out) = contBlock;
   }
 };
 

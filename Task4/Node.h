@@ -66,23 +66,90 @@ public:
         return handleAssignment(n);
       else if(n.value == "if")
         return handleIf(n);
+      else if(n.value == "for")
+        return handleFor(n);
     }
     else if(tempTag == "functioncall")
       return handleStateFunctionCall(n);
   }
 
+  Statement* handleFor(Node& n) {
+    std::cout << "handleFor\n";
+    if(n.children.size() == 4) {
+      Node assignmentNode;
+      auto temp = n.children.begin();
+      assignmentNode.children.push_back((*temp));
+      temp++;
+      assignmentNode.children.push_back((*temp));
+      temp++;
+      Node expNode = (*temp);
+      temp++;
+      return new For(
+        ((Assignment*)handleAssignment(assignmentNode)),
+        handleExptression(expNode),
+        handleBlock((*temp)));
+    }
+  }
+
   Statement* handleIf(Node& n) {
     std::cout << "handleIf" << n.children.size() << std::endl;
-    auto expr = n.children.front();
-    auto block1 = n.children.begin();
-    block1++;
-    if(n.children.size() == 2) {
-      return new If(handleExptression(expr), handleBlock((*block1)), new Seq());
+    if(n.value == "if") {
+      auto expr = n.children.front();
+      auto block1 = n.children.begin();
+      block1++;
+      if(n.children.size() == 2) {
+        return new If(handleExptression(expr), handleBlock((*block1)));
+      }
+      else if(n.children.size() == 3) {
+        auto check = block1;
+        check++;
+        std::string tempTag = (*check).tag.substr((*check).tag.find(" ") + 1, (*check).tag.length() - 1);
+        if(tempTag == "else") {
+          return new If(
+            handleExptression(expr),
+            handleBlock((*block1)),
+            handleBlock((*check).children.front()));
+        }
+        else if(tempTag == "elseifLoop") {
+          auto ei = (*check).children.begin();
+          if((*check).children.size() == 1) {
+            return new If(
+              handleExptression(expr),
+              handleBlock((*block1)),
+              new If(
+                handleExptression((*ei).children.front()),
+                handleBlock((*ei).children.back())));
+          }
+          else {
+            Statement* state1, *state2;
+            ei = (*check).children.end();
+            ei--;
+            state1 = new If(
+              handleExptression((*ei).children.front()),
+              handleBlock((*ei).children.back()));
+
+            while(ei != (*check).children.begin()) {
+              ei--;
+              Statement* temp;
+              *temp = *state1;
+              state2 = new If(
+                handleExptression((*ei).children.front()),
+                handleBlock((*ei).children.back()),
+                temp);
+              *state1 = *state2;
+            }
+            return new If(
+              handleExptression(expr),
+              handleBlock((*block1)),
+              state1);
+          }
+        }
+      }
+      else if(n.children.size() == 4) {
+
+      }
     }
-    else if(n.children.size() == 3) {
-      
-    }
-    else if(n.children.size() == 4) {
+    else if(n.value == "elseif") {
 
     }
   }
@@ -139,19 +206,20 @@ public:
   Expression* handleArgs(Node& n) {
     std::cout << "handleArgs\n";
     if(n.children.size() != 0)
-      return handleExptression(n.children.front().children.front());
+      return handleExptression(n.children.front());
     else
       return new Constant("");
   }
 
   Expression* handleExptression(Node& n) {
-    std::cout << "handleExpression\n";
     std::string tempTag = "";
     tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
+    std::cout << "handleExpression " << tempTag << " " << n.value << std::endl;
 
     if(tempTag == "exp") {
-      if(n.value != "")
+      if(n.value != "") {
         return new Constant(n.value);
+      }
       else {
         auto binop = n.children.begin();
         binop++;
@@ -209,23 +277,44 @@ public:
     else if(tempTag == "functioncall") {
       return handleExpFunctionCall(n);
     }
+    else if(tempTag == "explist") {
+      return handleExptression(n.children.front());
+    }
   }
 
-  Seq* handleAssignment(Node& n) {
-    std::cout << "handleAssignment\n";
-    Seq* temp = new Seq();
+  Statement* handleAssignment(Node& n) {
+
     auto varList = n.children.front();
     auto expList = n.children.back();
-    auto vListIt = varList.children.begin();
-    auto eListIt = expList.children.begin();
+    if(varList.children.size() > 0 && expList.children.size() > 0) {
+      auto vListIt = varList.children.begin();
+      auto eListIt = expList.children.begin();
+      std::cout << "handleAssignment "
+        << (*vListIt).tag << " " <<  (*vListIt).value << " "
+        << (*eListIt).tag << " " << (*eListIt).value << std::endl;
 
-    if(varList.children.size() == 1) {
-        temp->l.push_back(new Assignment((*vListIt).value, handleExptression((*eListIt))));
+      if(varList.children.size() == 1) {
+          return new Assignment(
+            (*vListIt).value,
+            handleExptression((*eListIt)));
+      }
+      else {
+        Seq* temp = new Seq();
+        while(vListIt != varList.children.end() && eListIt != expList.children.end()) {
+          vListIt++;
+          eListIt++;
+          temp->l.push_back(new Assignment(
+            (*vListIt).value,
+            handleExptression((*eListIt))));
+        }
+        return (Statement*)temp;
+      }
     }
     else {
-
+      return new Assignment(
+        varList.value,
+        handleExptression(expList));
     }
-    return temp;
   }
 };
 
