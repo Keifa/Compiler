@@ -69,18 +69,20 @@ public:
 
     if(tExit != NULL) {
       string temp = name + " -> " + tExit->name + " [label=\"true\",color=\"green\"];\n";
-      if(conStr.find(temp) == string::npos)
+      if(conStr.find(temp) == string::npos) {
         conStr += temp;
-      if(name != tExit->name)
-        tExit->dotFile(nodeStr, conStr);
+        if(name != tExit->name)
+          tExit->dotFile(nodeStr, conStr);
+      }
     }
 
     if(fExit != NULL) {
       string temp = name + " -> " + fExit->name + " [label=\"false\",color=\"red\"];\n";
-      if(conStr.find(temp) == string::npos)
+      if(conStr.find(temp) == string::npos) {
         conStr += temp;
-      if(name != fExit->name)
-        fExit->dotFile(nodeStr, conStr);
+        if(name != fExit->name)
+          fExit->dotFile(nodeStr, conStr);
+      }
     }
   }
 };
@@ -402,17 +404,21 @@ public:
     max->convert(*out);
     comp->convert(*out);
 
+    std::cout << "test" << std::endl;
+
     BBlock* contBlock = new BBlock();
     BBlock* trueBlock = new BBlock();
+    BBlock* tempTrueBlock = trueBlock;
+    std::cout << trueBlock << " " << tempTrueBlock << std::endl;
     (*out)->tExit = trueBlock;
     (*out)->fExit = contBlock;
 
     state->convert(&trueBlock);
     add->convert(trueBlock);
     comp->convert(trueBlock);
-
-    trueBlock->tExit = trueBlock;
+    trueBlock->tExit = tempTrueBlock;
     trueBlock->fExit = contBlock;
+    std::cout << trueBlock << " " << tempTrueBlock << std::endl;
 
     (*out) = contBlock;
   }

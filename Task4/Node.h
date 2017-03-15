@@ -57,7 +57,6 @@ public:
   }
 
   Statement* handleStatement(Node& n) {
-    std::cout << "handleStatement\n";
     std::string tempTag = "";
     tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
 
@@ -74,25 +73,33 @@ public:
   }
 
   Statement* handleFor(Node& n) {
-    std::cout << "handleFor\n";
     if(n.children.size() == 4) {
       Node assignmentNode;
       auto temp = n.children.begin();
-      assignmentNode.children.push_back((*temp));
-      temp++;
-      assignmentNode.children.push_back((*temp));
-      temp++;
-      Node expNode = (*temp);
-      temp++;
+      assignmentNode.children.push_back((*temp++));
+      assignmentNode.children.push_back((*temp++));
+      Node maxNode = (*temp++);
       return new For(
         ((Assignment*)handleAssignment(assignmentNode)),
-        handleExptression(expNode),
+        handleExptression(maxNode),
+        handleBlock((*temp)));
+    }
+    else if(n.children.size() == 4) {
+      Node assignmentNode;
+      auto temp = n.children.begin();
+      assignmentNode.children.push_back((*temp++));
+      assignmentNode.children.push_back((*temp++));
+      Node maxNode = (*temp++);
+      Node incNode = (*temp++);
+      return new For(
+        ((Assignment*)handleAssignment(assignmentNode)),
+        handleExptression(maxNode),
+        handleExptression(incNode),
         handleBlock((*temp)));
     }
   }
 
   Statement* handleIf(Node& n) {
-    std::cout << "handleIf" << n.children.size() << std::endl;
     if(n.value == "if") {
       auto expr = n.children.front();
       auto block1 = n.children.begin();
@@ -102,8 +109,8 @@ public:
       }
       else if(n.children.size() == 3) {
         auto check = block1;
+        std::string tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
         check++;
-        std::string tempTag = (*check).tag.substr((*check).tag.find(" ") + 1, (*check).tag.length() - 1);
         if(tempTag == "else") {
           return new If(
             handleExptression(expr),
@@ -155,7 +162,6 @@ public:
   }
 
   Statement* handleBlock(Node& n) {
-    std::cout << "handleBlock\n";
     Seq* temp = new Seq();
     auto chunk = n.children.front();
     for(auto i = chunk.children.begin(); i != chunk.children.end(); i++) {
@@ -165,7 +171,6 @@ public:
   }
 
   Statement* handleStateFunctionCall(Node& n) {
-    std::cout << "handleStateFunctionCall\n";
     auto c = n.children.front();
     auto args = n.children.back();
     if(c.value == "") {
@@ -183,12 +188,10 @@ public:
       else
         return new Output(new Constant(args.value));
     }
-    std::cout << "nullptr\n";
     return nullptr;
   }
 
   Expression* handleExpFunctionCall(Node& n) {
-    std::cout << "handleExpFunctionCall\n";
     auto c = n.children.front();
     auto args = n.children.back();
     if(c.value == "") {
@@ -204,7 +207,6 @@ public:
   }
 
   Expression* handleArgs(Node& n) {
-    std::cout << "handleArgs\n";
     if(n.children.size() != 0)
       return handleExptression(n.children.front());
     else
@@ -214,7 +216,6 @@ public:
   Expression* handleExptression(Node& n) {
     std::string tempTag = "";
     tempTag = n.tag.substr(n.tag.find(" ") + 1, n.tag.length() - 1);
-    std::cout << "handleExpression " << tempTag << " " << n.value << std::endl;
 
     if(tempTag == "exp") {
       if(n.value != "") {
@@ -289,9 +290,6 @@ public:
     if(varList.children.size() > 0 && expList.children.size() > 0) {
       auto vListIt = varList.children.begin();
       auto eListIt = expList.children.begin();
-      std::cout << "handleAssignment "
-        << (*vListIt).tag << " " <<  (*vListIt).value << " "
-        << (*eListIt).tag << " " << (*eListIt).value << std::endl;
 
       if(varList.children.size() == 1) {
           return new Assignment(
